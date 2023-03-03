@@ -1,0 +1,696 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Biheng Xie">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="放在首页的话：本人撰写博客最主要的目的是整理自己对研究对象的认识，积累经验，加深理解。自身水平并不高，很多都是靠自学。如果有大佬看出其中的错误或者有新的角度理解，还请留言指点，非常感谢，这对于我水平提高有很大的帮助。 牛顿法的简介NEWTON Solver是MOOSE平台三大求解器之一（NEWTON、JFNK、PJFNK），简要了解牛顿法的基本原理对于理解MOOSE平台的底层机制有一定帮助，也能帮">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MOOSE多物理场耦合平台入门学习记录（二）- 牛顿法求解非线性方程组">
+<meta property="og:url" content="http://example.com/2022/07/05/blog01/index.html">
+<meta property="og:site_name" content="Xiao Ren和Xiao Xie的博客">
+<meta property="og:description" content="放在首页的话：本人撰写博客最主要的目的是整理自己对研究对象的认识，积累经验，加深理解。自身水平并不高，很多都是靠自学。如果有大佬看出其中的错误或者有新的角度理解，还请留言指点，非常感谢，这对于我水平提高有很大的帮助。 牛顿法的简介NEWTON Solver是MOOSE平台三大求解器之一（NEWTON、JFNK、PJFNK），简要了解牛顿法的基本原理对于理解MOOSE平台的底层机制有一定帮助，也能帮">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/xuanen.jpeg">
+<meta property="article:published_time" content="2022-07-05T12:11:18.000Z">
+<meta property="article:modified_time" content="2023-03-03T03:02:34.917Z">
+<meta property="article:author" content="Biheng Xie">
+<meta property="article:tag" content="偏微分方程数值解">
+<meta property="article:tag" content="有限差分法">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/xuanen.jpeg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>MOOSE多物理场耦合平台入门学习记录（二）- 牛顿法求解非线性方程组 - Xiao Ren和Xiao Xie的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.2","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Xiao Ren和Xiao Xie的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/xuanen.jpeg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="MOOSE多物理场耦合平台入门学习记录（二）- 牛顿法求解非线性方程组"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        Biheng Xie
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-07-05 20:11" pubdate>
+          2022年7月5日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          38 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">MOOSE多物理场耦合平台入门学习记录（二）- 牛顿法求解非线性方程组</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>放在首页的话：本人撰写博客最主要的目的是整理自己对研究对象的认识，积累经验，加深理解。自身水平并不高，很多都是靠自学。如果有大佬看出其中的错误或者有新的角度理解，还请留言指点，非常感谢，这对于我水平提高有很大的帮助。</p>
+<h1 id="牛顿法的简介"><a href="#牛顿法的简介" class="headerlink" title="牛顿法的简介"></a>牛顿法的简介</h1><p>NEWTON Solver是MOOSE平台三大求解器之一（NEWTON、JFNK、PJFNK），简要了解牛顿法的基本原理对于理解MOOSE平台的底层机制有一定帮助，也能帮助判断使用NEWTON solver收敛失败的原因。本博文主要参考这篇文章(<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/139595720)%EF%BC%8C%E4%BB%A5%E5%8F%8A%E4%B8%80%E4%B8%AA%E9%9D%9E%E5%B8%B8%E7%AE%80%E6%B4%81%E6%98%8E%E4%BA%86%E7%9A%84%E6%95%99%E5%AD%A6%E8%A7%86%E9%A2%91(https://www.bilibili.com/video/BV19Q4y1S7dR?spm_id_from=333.337.search-card.all.click&amp;vd_source=b154dc71d458a24aaa3478de44369f37)%E3%80%82">https://zhuanlan.zhihu.com/p/139595720)，以及一个非常简洁明了的教学视频(https://www.bilibili.com/video/BV19Q4y1S7dR?spm_id_from=333.337.search-card.all.click&amp;vd_source=b154dc71d458a24aaa3478de44369f37)。</a></p>
+<h2 id="牛顿法求解非线性方程"><a href="#牛顿法求解非线性方程" class="headerlink" title="牛顿法求解非线性方程"></a>牛顿法求解非线性方程</h2><p>大多数数值分析的教科书都是首先介绍牛顿法求解非线性方程。牛顿法的基本思想来自于泰勒公式，假设现存一个非线性方程$y &#x3D; f(x) &#x3D; b$，首先将方程转化为求根问题，即$F(x) &#x3D; f(x)-b&#x3D;0$。在某一点$x_0$处，进行泰勒展开，可以得到：<br>$$<br>F(x) &#x3D; F(x_0) + F^{‘}(x - x_0) + \frac{F^{‘’}(x_0)}{2}(x - x_0)^2 + O(\Delta x) \tag{1}<br>$$<br>对于线性方程，仅取一阶近似就可以满足要求，可以得到:<br>$$<br>\begin{array}{c}<br>    F(x_0) + F^{‘}(x - x_0) &#x3D; 0 \<br>    x &#x3D; x_0 - \frac{F(x_0)}{F^{‘}(x_0)}<br>\end{array} \tag{2}<br>$$<br>显然此时的$x$并不可能直接就是方程的根，但是可以重复迭代，使得$x$不断逼近方程根，直到满足要求。从图像上看，其过程就是，在一个方程所表达的曲线上选取一个点$x_0$，然后在该点做与曲线的切线，切线与x轴相交的点，其坐标值就是下一步迭代的$x_1$，然后再$x_1$所对应曲线上的点，继续做切线，切线与x轴相交的点$x_3$，反复重复上述过程，直到$x_n$达到预设误差的要求。</p>
+<p>但是，对于需要求解函数的极值问题，取一阶近似就不能满足要求了，需要将其转化为求解其导数为0问题，再使用牛顿法，因此，常见求解非线性方程选取的是二阶近似：<br>$$<br>\begin{array}{c}<br>    F(x) &#x3D; F(x_0) + F^{‘}(x - x_0) + \frac{F^{‘’}(x_0)}{2}(x - x_0)^2 &#x3D; 0<br>\end{array} \tag{3}<br>$$<br>对上式，左右再进行求导可以得到:<br>$$<br>\begin{array}{c}<br>    F^{‘}(x_0) + F^{‘’}(x - x_0) &#x3D; 0 \<br>    x &#x3D; x_0 - \frac{F^{‘}(x_0)}{F^{‘’}(x_0)}<br>\end{array} \tag{4}<br>$$<br>可以看到，牛顿法使用的前提，是曲线导数存在，而在实际使用中，求导数是一个非常难处理的问题，可以使用差分来近似。</p>
+<h2 id="牛顿法求解非线性方程的编程实现"><a href="#牛顿法求解非线性方程的编程实现" class="headerlink" title="牛顿法求解非线性方程的编程实现"></a>牛顿法求解非线性方程的编程实现</h2><p>以方程$x^2 - 2x  -3 &#x3D;0, x&gt;0$为例，其一阶导数和二阶导数分别是$2x-2, 2$，代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><span class="hljs-keyword">import</span> matplotlib.pyplot <span class="hljs-keyword">as</span> plt<br><span class="hljs-keyword">from</span> math <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">def</span> <span class="hljs-title function_">F</span>(<span class="hljs-params">x</span>):<br>    <span class="hljs-keyword">return</span> x*x - <span class="hljs-number">2</span>*x - <span class="hljs-number">3</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">firstOD</span>(<span class="hljs-params">x</span>): <span class="hljs-comment">#一阶导数</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">2</span>*x - <span class="hljs-number">2</span><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">secondOD</span>(<span class="hljs-params">x</span>): <span class="hljs-comment">#二阶导数</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">2</span><br><span class="hljs-comment"># 以下为一阶近似牛顿法</span><br>x0 = <span class="hljs-number">0.0</span> <span class="hljs-comment">#初始值</span><br>err_limit = <span class="hljs-number">1e-10</span> <span class="hljs-comment">#误差限</span><br>err_iter = <span class="hljs-number">1.0</span><br>iter_num = <span class="hljs-number">0</span><br><span class="hljs-keyword">while</span>(err_iter &gt; err_limit):<br>    xn = x0 - F(x0)/firstOD(x0)<br>    err_iter = <span class="hljs-built_in">abs</span>(xn - x0)<br>    x0 = xn<br>    iter_num = iter_num + <span class="hljs-number">1</span><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;The iter num for Newton method 1st is &#x27;</span> + <span class="hljs-built_in">str</span>(iter_num))<br></code></pre></td></tr></table></figure>
+
+<p>示例方程确实太简单了，也可以看到，单纯使用牛顿法编程并不复杂（前提是导数易求解和易计算），还有就是初值的影响非常大，第一个是初值选取不当，容易陷入初值陷阱，计算失败。第二个就是可能迭代不到想要的解，如上面的方程，应该有两个根，如果初值选取小于1.0，则是求解的-1的根，但是实际想要的是$x&gt;0$的解。因为牛顿法单次只能搜寻某个局部区间的解。因此在使用牛顿法前，对方程的几何特性最好要有一定把握。</p>
+<h2 id="牛顿法求解非线性方程组"><a href="#牛顿法求解非线性方程组" class="headerlink" title="牛顿法求解非线性方程组"></a>牛顿法求解非线性方程组</h2><p>如果是方程组，那么解就不是一个单个的数，而是一个解向量$[x_0,x_1,x_2,\cdots,x_n]$，对应方程组为:<br>$$<br>\begin{bmatrix}<br>    f_{1}(x_0,x_1,x_2,\cdots,x_n)  \<br>    f_{2}(x_0,x_1,x_2,\cdots,x_n) \<br>    f_{3}(x_0,x_1,x_2,\cdots,x_n) \<br>      \vdots \<br>    f_{n}(x_0,x_1,x_2,\cdots,x_n)<br>\end{bmatrix} &#x3D;<br>\begin{bmatrix}<br>    0 \<br>    0 \<br>    0 \<br>    \vdots \<br>    0<br>\end{bmatrix} \tag{5}<br>$$<br>对左侧矩阵中的每一项使用多元泰勒展开，与前述过程类似，取一阶梯度，写成迭代格式，可以得到：<br>$$<br>\begin{array}{c}<br>    F(X^{k}) + \nabla F(X^{k})(X^{k+1} - X^{k}) &#x3D; 0 \<br>    (X^{k+1} - X^{k}) &#x3D;  - \nabla F(X^{k})^{-1}F(X^{k})<br>\end{array} \tag{6}<br>$$<br>上式中，$\nabla F(X^{k})$ 就是常见的Jacbobian矩阵，注意，上式中，已经不是简单的乘除法，而是涉及到矩阵求逆运算，并不满足交换律。X也是一个解向量，而不是一个单个数值。Jacbobian矩阵的形式如下：<br>$$<br>\begin{bmatrix}<br>    \frac{\partial f_1}{\partial x_0} &amp; \frac{\partial f_1}{\partial x_1} &amp; \cdots &amp;  \frac{\partial f_1}{\partial x_n} \<br>    \frac{\partial f_2}{\partial x_0} &amp; \frac{\partial f_2}{\partial x_1} &amp; \cdots  &amp; \frac{\partial f_2}{\partial x_n} \<br>    \vdots&amp;\vdots&amp; \ddots &amp; \vdots \<br>    \frac{\partial f_n}{\partial x_0} &amp; \frac{\partial f_n}{\partial x_1} &amp; \cdots  &amp;\frac{\partial f_n}{\partial x_n}<br>\end{bmatrix}<br>$$</p>
+<h2 id="牛顿法求解非线性方程组的编程实现"><a href="#牛顿法求解非线性方程组的编程实现" class="headerlink" title="牛顿法求解非线性方程组的编程实现"></a>牛顿法求解非线性方程组的编程实现</h2><p>以如下方程为示例，其几何意义就是一直线与圆相交的两点。这里仅考虑y&gt;0的解：<br>$$<br>\begin{cases}<br>    x^2 + y^2 &#x3D; 16 \<br>    y -\sqrt{3}x &#x3D; 0<br>\end{cases} \tag{7}<br>$$<br>待求解方程和Jacobian矩阵如下：<br>$$<br>\begin{cases}<br>    x^2 + y^2 -16 &#x3D; 0 \<br>    -\sqrt{3}x + y -4 &#x3D;0<br>\end{cases},<br>\begin{bmatrix}<br>    2x &amp; 2y \<br>    -\sqrt{3} &amp; 1<br>\end{bmatrix}<br>$$<br>代入6式中的迭代表达式：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs python"><br><span class="hljs-comment">#以下为牛顿法求解方程组程序</span><br>    <span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br>    <span class="hljs-keyword">import</span> matplotlib.pyplot <span class="hljs-keyword">as</span> plt<br>    <span class="hljs-keyword">from</span> math <span class="hljs-keyword">import</span> *<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">f11</span>(<span class="hljs-params">x</span>): <span class="hljs-comment">#四个偏导数</span><br>        <span class="hljs-keyword">return</span> <span class="hljs-number">2</span>*x[<span class="hljs-number">0</span>]<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">f12</span>(<span class="hljs-params">x</span>):<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">2</span>*x[<span class="hljs-number">1</span>]<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">f21</span>(<span class="hljs-params">x</span>):<br>        <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>*sqrt(<span class="hljs-number">3</span>)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">f22</span>(<span class="hljs-params">x</span>):<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">1</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">err_cal</span>(<span class="hljs-params">a,b</span>): <span class="hljs-comment">#计算误差，不同的误差统计方法函数不同，这里采用平方和</span><br>        n = np.size(a,axis=<span class="hljs-number">0</span>)<br>        err_sum = <span class="hljs-number">0</span><br>        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n):<br>            err_sum = err_sum + (a[i] - b[i])**<span class="hljs-number">2</span><br>        <span class="hljs-keyword">return</span> sqrt(err_sum)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">Jacobian_cal</span>(<span class="hljs-params">x</span>):<br>        n = np.size(x,axis=<span class="hljs-number">0</span>)<br>        tempm = np.zeros([n,n])<br>        tempm[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>] = f11(x)<br>        tempm[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>] = f12(x)<br>        tempm[<span class="hljs-number">1</span>][<span class="hljs-number">0</span>] = f21(x)<br>        tempm[<span class="hljs-number">1</span>][<span class="hljs-number">1</span>] = f22(x)<br>        <span class="hljs-keyword">return</span> tempm<br>    err_limit = <span class="hljs-number">1e-5</span><br>    err_iter = <span class="hljs-number">1</span><br>    xi = np.zeros([<span class="hljs-number">2</span>,<span class="hljs-number">1</span>])<br>    xi[<span class="hljs-number">0</span>] = <span class="hljs-number">3.0</span><br>    xi[<span class="hljs-number">1</span>] = <span class="hljs-number">2.0</span><br>    JM = np.zeros([<span class="hljs-number">4</span>,<span class="hljs-number">4</span>])<br>    iter_num = <span class="hljs-number">0</span><br>    <span class="hljs-keyword">while</span>(err_iter &gt; err_limit):<br>        JM = Jacobian_cal(xi)<br>        xi_old = xi.copy()<br>        F = np.zeros([<span class="hljs-number">2</span>,<span class="hljs-number">1</span>])<br>        F[<span class="hljs-number">0</span>] = xi[<span class="hljs-number">0</span>]**<span class="hljs-number">2</span> + xi[<span class="hljs-number">1</span>]**<span class="hljs-number">2</span> - <span class="hljs-number">16</span><br>        F[<span class="hljs-number">1</span>] = -sqrt(<span class="hljs-number">3</span>)*xi[<span class="hljs-number">0</span>] + xi[<span class="hljs-number">1</span>]<span class="hljs-comment">#计算F(x^k)</span><br>        <span class="hljs-built_in">print</span>(F)<br>        tempjms = np.linalg.inv(JM) <span class="hljs-comment">#对Jacobian矩阵求逆</span><br>        Rn = -<span class="hljs-number">1</span>*tempjms.dot(F)<br>        xi = xi + Rn <span class="hljs-comment">#计算xi+1，作为下一步迭代初始值</span><br>        err_iter = err_cal(xi_old,xi) <span class="hljs-comment">#计算迭代误差</span><br>        iter_num = iter_num + <span class="hljs-number">1</span><br>    <span class="hljs-built_in">print</span>(xi)  <span class="hljs-comment">#输出结果</span><br>    <span class="hljs-built_in">print</span>(iter_num)<br></code></pre></td></tr></table></figure>
+<p>在牛顿法中，Jacobian矩阵的性质决定了迭代的结果好坏，有可能会出现如下情况：</p>
+<ol>
+<li>Jacobian矩阵迭代过程中产生奇异，不可以再求逆，迭代就会失败。</li>
+<li>由于求解导数，以及矩阵求逆本身就是很复杂的运算，需要耗费大量计算资源，很容易出现错误，这与方程本身的特性相关。例如，上面方程如果x和y的系数互为相反数，则难以迭代出正确解。</li>
+<li>初值选取不当，造成了后面一系列迭代计算的恶化。</li>
+</ol>
+<p>如果准确求解Jacobian矩阵并且保持迭代过程中矩阵有良好的计算特性是应用牛顿法的大问题。同时也可以看到，牛顿法求解方程组是所有方程同步求解的，并不是类似Picard迭代一样，完成一个场的计算再代入另一个场计算，有利于考虑不同物理场方程之间的高度非线性耦合关系，但是计算要求也更高。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%81%8F%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B%E6%95%B0%E5%80%BC%E8%A7%A3/">#偏微分方程数值解</a>
+      
+        <a href="/tags/%E6%9C%89%E9%99%90%E5%B7%AE%E5%88%86%E6%B3%95/">#有限差分法</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>MOOSE多物理场耦合平台入门学习记录（二）- 牛顿法求解非线性方程组</div>
+      <div>http://example.com/2022/07/05/blog01/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Biheng Xie</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年7月5日</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>许可协议</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/11/30/blog02/" title="随笔：在超算-计算集群中编译安装OpenFOAM-5.x">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">随笔：在超算-计算集群中编译安装OpenFOAM-5.x</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.1/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
