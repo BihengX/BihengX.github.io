@@ -1,3 +1,4 @@
+http://example.com/2022/12/03/post3/
 http://example.com/2022/07/05/blog01/
 http://example.com/2022/11/30/blog02/
 http://example.com/about/index.html
@@ -6,3 +7,4 @@ http://example.com/tags/%E5%81%8F%E5%BE%AE%E5%88%86%E6%96%B9%E7%A8%8B%E6%95%B0%E
 http://example.com/tags/%E6%9C%89%E9%99%90%E5%B7%AE%E5%88%86%E6%B3%95/
 http://example.com/tags/CFD/
 http://example.com/tags/%E9%9A%8F%E7%AC%94/
+http://example.com/tags/Openfoam%E5%AD%A6%E4%B9%A0/
