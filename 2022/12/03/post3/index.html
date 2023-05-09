@@ -25,7 +25,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/jiaochangwei.jpeg">
 <meta property="article:published_time" content="2022-12-03T08:07:53.000Z">
-<meta property="article:modified_time" content="2023-05-08T16:09:06.221Z">
+<meta property="article:modified_time" content="2023-05-09T02:25:01.518Z">
 <meta property="article:author" content="Biheng Xie">
 <meta property="article:tag" content="Openfoam学习">
 <meta name="twitter:card" content="summary_large_image">
@@ -228,7 +228,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.3k 字
+          5.7k 字
         
       </span>
     
@@ -239,7 +239,7 @@
         
         
         
-          37 分钟
+          48 分钟
         
       </span>
     
@@ -299,15 +299,15 @@ Wolfdynamics培训资料(http://www.wolfdynamics.com/tutorials.html?layout=edit&
 <p>使用快捷命令foam可以直接进入主文件夹，在终端中输入tree -L 1可以看到：
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs bash">├── Allwmake<br>├── COPYING<br>├── README.md<br>├── README.org<br>├── applications <span class="hljs-comment">#求解器，前后处理工具及其他工具源码</span><br>├── bin <span class="hljs-comment">#常用的脚本</span><br>├── doc <span class="hljs-comment">#Openfoam文档，需要使用Doxygen编译本地文档</span><br>├── etc <span class="hljs-comment">#环境文件夹</span><br>├── platforms<br>├── src<br>├── <span class="hljs-built_in">test</span><br>├── tutorials<br>└── wmake <br></code></pre></td></tr></table></figure>
 在Openfoam中的bashrc文件中，定义了Openfoam中的基本设置，包括并行核数、编译平台、并行MPI类型等等，另外还可以在$WM_PROJECT_DIR/etc/config.sh/aliases文件中给出了快捷指令的含义。例如foam是进入Openfoam中主文件夹，tut是进入自带案例文件夹。</p>
-<p>常用的三个Linux命令 1.
-grep命令：搜索命令，用来在输入文本的中搜索特定的内容，并输出到终端界面上，支持正则表达式匹配。用法是grep
+<p>常用的三个Linux命令</p>
+<ol type="1">
+<li><p>grep命令：搜索命令，用来在输入文本的中搜索特定的内容，并输出到终端界面上，支持正则表达式匹配。用法是grep
 [option] 搜索内容 搜索文件，不同的option代表的含义的不同：
 -i：忽略字符大小写 -r：递归地搜索所有子目录
 -w：只匹配整个单词，而不是单词的一部分
 -v：反转搜索结果，即输出不包含匹配字符串的所有行
 -c：输出匹配到的行数而非匹配行的内容 grep -i "hello" file1.txt
-表示忽略大小写，在file1.txt中找到相应包含"hello"</p>
-<ol start="2" type="1">
+表示忽略大小写，在file1.txt中找到相应包含"hello"</p></li>
 <li><p>find命令：在指定目录下查找文件和目录，使用不同的选项来过滤和限制查找的结果。用法是find
 [path] [expression]，find . -name
 "<strong>openfoam</strong>"，表示在当前文件夹下查找文件名中包含openfoam的文件，find
@@ -327,10 +327,16 @@ data.csv，输出 data.csv 文件中第二列大于30的行。</p></li>
 <p>bin文件夹中包含了许多实用的shell脚本，每个脚本在激活Openfoam环境时，可以直接当做命令使用。例如foamCleanTutorials脚本，可以将所有的计算结果全部清空。paraFoam脚本可以直接启动paraview进行后处理。
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><code class="hljs bash">.<br>├── foamCheckJobs<br>├── foamCleanPath<br>├── foamCleanPolyMesh <span class="hljs-comment">#清除网格</span><br>├── foamCleanTutorials <span class="hljs-comment">#清除计算结果</span><br>├── foamCloneCase<br>├── foamCopySettings<br>├── foamCreateVideo<br>├── foamEndJob<br>├── foamEtcFile<br>├── foamGetDict<br>├── foamInstallationTest<br>├── foamJob<br>├── foamLog<br>├── foamMonitor<br>├── foamNew<br>├── foamNewApp <span class="hljs-comment">#创建自己app</span><br>├── foamNewBC <br>├── foamNewCase<br>├── foamNewFunctionObject<br>├── foamNewSource -&gt; ../etc/codeTemplates/source/foamNewSource<br>├── foamNewTemplate -&gt; ../etc/codeTemplates/template/foamNewTemplate<br>├── foamPrintJobs<br>├── foamRunTutorials<br>├── foamSearch<br>├── foamSequenceVTKFiles<br>├── foamSolverSweeps<br>├── foamSystemCheck<br>├── foamTestTutorial<br>├── mpirunDebug<br>├── paraFoam <span class="hljs-comment">#启动paraview后处理</span><br>└── tools<br>    ├── CleanFunctions<br>    ├── LogFunctions<br>    ├── MakefileDirs<br>    ├── README<br>       ......<br>    ├── doxyFilter.sed<br>    ├── findEmptyMake<br>    ├── foamConfigurePaths<br>    ├── foamCreateCompletionCache<br>    ├── foamCreateManpage<br>    ├── foamCreateModuleInclude<br>    ├── foamExec<br>    ├── foamGrepExeTargets<br>    ├── foamLog.db<br>    ├── foamPackRelease<br>    ├── foamUpdateCaseFileHeader<br>    ├── git-find-non-ascii<br>    ├── git-find-trailingspace<br>    ├── help-filter<br>    ├── install-dirs<br>    ├── install-platform<br>    ├── lib-dir<br>    ├── openfoam.in<br>    ├── pre-commit-hook<br>    ├── pre-receive-hook<br>    ├── query-detect<br>    ├── query-versions<br>    ├── source-bashrc<br>    ├── update-mpi-links.in<br>    └── vscode-settings<br></code></pre></td></tr></table></figure></p>
 <h3 id="etc文件夹">etc文件夹</h3>
-<p>etc文件夹中包含了许多环境配置文件，包括bashrc、各类模板、
+<p>etc文件夹中包含了许多环境配置文件，包括bashrc、各类模板、以及热物性库等等文件。其中caseDicts中，有许多输入文件的模板。对于自己编写自定义的文件有比较多的参考意义。
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs bash">.<br>├── bashrc<br>├── bashrc-e<br>├── caseDicts<br>├── cellModels<br>├── codeTemplates<br>├── colourTables<br>├── config.csh<br>├── config.sh<br>├── controlDict <br>├── cshrc<br>├── cshrc-e<br>├── openfoam<br>├── prefs.csh<br>├── prefs.sh<br>├── templates<br>└── thermoData<br></code></pre></td></tr></table></figure></p>
 <h3 id="src文件夹">src文件夹</h3>
 <p>src文件夹中包含了Openfoam最核心、最底层的源代码，其中包括求解器、网格生成器、库函数、物理模型等等。通常情况下，这些源代码需要进行修改，以便用户创建自己的定制应用程序。用户可以通过修改文本文件、头文件或使用C++等编程语言来实现自定义功能。app文件夹中的内容旨在解决流体动力学领域的各种问题。包括求解器和辅助工具，如网格生成器和后处理工具等。这些应用程序大多数都是不需要修改的，用户可以通过控制参数文件（system文件夹中）来设置运行选项。简单地说，src文件夹中的内容更为底层，是app文件夹中内容的基础。</p>
+<p>对比src文件和app文件中的差异就是， <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs bash">.<br>├── Allwmake<br>├── Allwmake-scan<br>├── ODE<br>├── OSspecific<br>├── OpenFOAM<br>├── Pstream<br>├── TurbulenceModels<br>├── atmosphericModels<br>├── combustionModels<br>├── conversion<br>├── dummyThirdParty<br>├── dynamicFaMesh<br>├── dynamicFvMesh<br>├── dynamicMesh<br>├── engine<br>├── faOptions<br>├── fileFormats <br>├── finiteArea<br>├── finiteVolume  <span class="hljs-comment">#提供有限体积法离散所需要的底层支持，网格离散、标量、矢量运算等等</span><br>├── functionObjects<br>├── fvAgglomerationMethods<br>├── fvMotionSolver<br>├── fvOptions<br>├── genericPatchFields<br>├── lagrangian<br>├── lumpedPointMotion<br>├── mesh<br>├── meshTools<br>├── optimisation<br>├── overset<br>├── parallel<br>├── phaseSystemModels<br>├── randomProcesses<br>├── regionFaModels<br>├── regionModels<br>├── renumber<br>├── rigidBodyDynamics<br>├── rigidBodyMeshMotion<br>├── sampling<br>├── sixDoFRigidBodyMotion<br>├── sixDoFRigidBodyState<br>├── surfMesh<br>├── thermoTools<br>├── thermophysicalModels<br>├── topoChangerFvMesh<br>├── transportModels<br>└── waveModels<br></code></pre></td></tr></table></figure></p>
+<h3 id="platforms文件夹">platforms文件夹</h3>
+<p>在编译appOpenfoam源代码和应用程序所生成的二进制文件和库文件都存放在该文件夹中。该文件夹内容十分重要，保存了开发程序所需要的所有库文件。
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs bash">. <br>├── linux64GccDPInt32Opt<br>│   ├── applications<br>│   ├── bin <span class="hljs-comment">#编译过程中所生成的二进制文件</span><br>│   ├── lib <span class="hljs-comment">#编译过程中所生成的库文件.so文件</span><br>│   └── src<br>└── linux64GccDPInt32OptSYSTEMOPENMPI<br>    └── src <span class="hljs-comment">#编译所需要的所有源文件，与src文件夹和app文件夹内容对应，但是其中是.o文件和.C.dep文件</span><br></code></pre></td></tr></table></figure></p>
+<h2 id="小结">小结</h2>
+<p>认识Openfoam的文件结构对我来说最大的帮助是理解一个大型项目构建的基本逻辑，怎么样去设计框架，例如openfoam将有关网格、前后处理、离散、基础模型放在src中，再将基于这些内容所开发的求解器放在app中，实现分离，将项目构建清晰。然后就是，在日常使用中，哪里出现问题了，可以对照去相应的文件夹找到参考内容。</p>
 
                 
               </div>
