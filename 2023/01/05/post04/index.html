@@ -1,0 +1,849 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Biheng Xie">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="汪洋博士的Openfoam基础课程的学习记录上 主要是练习和记录存在的问题，多上手才能发现问题，这个文档所有的素材包括代码、图片、习题都来自于汪洋博士的开源OpenFOAM培训课件，文档只是加入了我自己的一些碎碎念和程序的理解。 lecture 04 算例6管式反应器 控制方程：   image-20230608163514836  这个方程是一个稳态方程，所有的表达式都是显性的，仔细看方程，速度">
+<meta property="og:type" content="article">
+<meta property="og:title" content="汪洋博士的Openfoam基础课程的学习记录一">
+<meta property="og:url" content="http://example.com/2023/01/05/post04/index.html">
+<meta property="og:site_name" content="Xiao Ren和Xiao Xie的博客">
+<meta property="og:description" content="汪洋博士的Openfoam基础课程的学习记录上 主要是练习和记录存在的问题，多上手才能发现问题，这个文档所有的素材包括代码、图片、习题都来自于汪洋博士的开源OpenFOAM培训课件，文档只是加入了我自己的一些碎碎念和程序的理解。 lecture 04 算例6管式反应器 控制方程：   image-20230608163514836  这个方程是一个稳态方程，所有的表达式都是显性的，仔细看方程，速度">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/jiaochangwei.jpeg">
+<meta property="article:published_time" content="2023-01-05T07:07:53.000Z">
+<meta property="article:modified_time" content="2023-08-07T07:35:06.951Z">
+<meta property="article:author" content="Biheng Xie">
+<meta property="article:tag" content="OpenFoam学习">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/jiaochangwei.jpeg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>汪洋博士的Openfoam基础课程的学习记录一 - Xiao Ren和Xiao Xie的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.2","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Xiao Ren和Xiao Xie的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/jiaochangwei.jpeg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="汪洋博士的Openfoam基础课程的学习记录一"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        Biheng Xie
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-01-05 15:07" pubdate>
+          2023年1月5日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          25k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          212 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">汪洋博士的Openfoam基础课程的学习记录一</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1
+id="汪洋博士的openfoam基础课程的学习记录上">汪洋博士的Openfoam基础课程的学习记录上</h1>
+<p>主要是练习和记录存在的问题，多上手才能发现问题，这个文档所有的素材包括代码、图片、习题都来自于汪洋博士的开源OpenFOAM培训课件，文档只是加入了我自己的一些碎碎念和程序的理解。</p>
+<h2 id="lecture-04">lecture 04</h2>
+<h3 id="算例6管式反应器">算例6管式反应器</h3>
+<p>控制方程：</p>
+<figure>
+<img src="./汪博的Openfoam基础课/image-20230608163514836.png" srcset="/img/loading.gif" lazyload
+alt="image-20230608163514836" />
+<figcaption aria-hidden="true">image-20230608163514836</figcaption>
+</figure>
+<p>这个方程是一个稳态方程，所有的表达式都是显性的，仔细看方程，速度散度为0这一项没有用上，因为速度本身等于压力的梯度与常数的积。所以实质上变量间不存在一个耦合关系。所有表达式都是显示表达的，也就不涉及到压力修正那些。</p>
+<h4 id="修改求解器代码">修改求解器代码</h4>
+<p>出现了拉普拉斯方程，自定义求解器在laplacianFoam中开发比较好，但是原本的laplacianFoam中只有温度T，需要新增常变量，声明新变量需要修改creatFeilds文件。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><code class="hljs c++">Info&lt;&lt; <span class="hljs-string">&quot;Reading field T\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-comment">//</span><br><span class="hljs-comment">//volScalarField T</span><br><span class="hljs-comment">//(</span><br><span class="hljs-comment">//    IOobject</span><br><span class="hljs-comment">//    (</span><br><span class="hljs-comment">//        &quot;T&quot;,</span><br><span class="hljs-comment">//        runTime.timeName(),</span><br><span class="hljs-comment">//        mesh,</span><br><span class="hljs-comment">//        IOobject::MUST_READ,</span><br><span class="hljs-comment">//        IOobject::AUTO_WRITE</span><br><span class="hljs-comment">//    ),</span><br><span class="hljs-comment">//    mesh</span><br><span class="hljs-comment">//);</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//Info&lt;&lt; &quot;Reading diffusivity DT\n&quot; &lt;&lt; endl;</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//volScalarField DT</span><br><span class="hljs-comment">//(</span><br><span class="hljs-comment">//    IOobject</span><br><span class="hljs-comment">//    (</span><br><span class="hljs-comment">//        &quot;DT&quot;,</span><br><span class="hljs-comment">//        runTime.timeName(),</span><br><span class="hljs-comment">//        mesh,</span><br><span class="hljs-comment">//        IOobject::READ_IF_PRESENT,</span><br><span class="hljs-comment">//        IOobject::AUTO_WRITE</span><br><span class="hljs-comment">//    ),</span><br><span class="hljs-comment">//    mesh,</span><br><span class="hljs-comment">//    dimensionedScalar(dimViscosity, Zero)</span><br><span class="hljs-comment">//);</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//if (!DT.headerOk())</span><br><span class="hljs-comment">//&#123;</span><br><span class="hljs-comment">//    IOdictionary transportProperties</span><br><span class="hljs-comment">//    (</span><br><span class="hljs-comment">//        IOobject</span><br><span class="hljs-comment">//        (</span><br><span class="hljs-comment">//            &quot;transportProperties&quot;,</span><br><span class="hljs-comment">//            runTime.constant(),</span><br><span class="hljs-comment">//            mesh,</span><br><span class="hljs-comment">//            IOobject::MUST_READ_IF_MODIFIED,</span><br><span class="hljs-comment">//            IOobject::NO_WRITE</span><br><span class="hljs-comment">//        )</span><br><span class="hljs-comment">//    );</span><br><span class="hljs-comment">//    DT = dimensionedScalar(&quot;DT&quot;, dimViscosity, transportProperties);</span><br><span class="hljs-comment">//&#125;</span><br><br>Info&lt;&lt;<span class="hljs-string">&quot;Reaing the field p\n&quot;</span>&lt;&lt;endl;<br><br><span class="hljs-function">volScalarField <span class="hljs-title">p</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">        IOobject(<span class="hljs-string">&quot;p&quot;</span>,runTime.timeName(), mesh, IOobject::MUST_READ, IOobject::AUTO_WRITE),mesh</span></span><br><span class="hljs-params"><span class="hljs-function">)</span></span>; <span class="hljs-comment">//生成了一个标量场对象，名字为p，使用了一个IO类和网格类mesh进行初始化</span><br><br><br>Info&lt;&lt; <span class="hljs-string">&quot;Reading field U\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-function">volVectorField <span class="hljs-title">U</span><span class="hljs-params">(IOobject(<span class="hljs-string">&quot;U&quot;</span>,runTime.timeName(), mesh, IOobject::MUST_READ, IOobject::AUTO_WRITE),mesh)</span></span>;<br><span class="hljs-comment">//与压力类似，这里是声明了一个矢量场U（速度场）</span><br><br>Info&lt;&lt; <span class="hljs-string">&quot;Reading transportProperties\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-function">IOdictionary <span class="hljs-title">transportProperties</span><span class="hljs-params">(IOobject(<span class="hljs-string">&quot;transportProperties&quot;</span>,runTime.constant(),mesh, IOobject::MUST_READ,IOobject::NO_WRITE))</span></span>;<br><span class="hljs-comment">//这里声明了一个IO字典类，transportProperties就是类名，也是要找的文件，字典类不需要网格数据，所以相比p和U，少了mesh，也不需要在运算过程中写入修改</span><br><br>Info&lt;&lt; <span class="hljs-string">&quot;Reading transportProperties\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-function">dimensionedScalar <span class="hljs-title">mu</span><span class="hljs-params">(<span class="hljs-string">&quot;mu&quot;</span>, transportProperties)</span></span>; <span class="hljs-comment">//从tansportProperties中读取mu的值</span><br><span class="hljs-function">dimensionedScalar <span class="hljs-title">kappa</span><span class="hljs-params">(<span class="hljs-string">&quot;kappa&quot;</span>, transportProperties)</span></span>;<br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;createFvOptions.H&quot;</span></span><br><br></code></pre></td></tr></table></figure>
+<p>接下来是修改求解器代码，因为公式都是显性表达的，所以写入过程非常直观：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*---------------------------------------------------------------------------*\</span><br><span class="hljs-comment">  =========                 |</span><br><span class="hljs-comment">  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox</span><br><span class="hljs-comment">   \\    /   O peration     |</span><br><span class="hljs-comment">    \\  /    A nd           | www.openfoam.com</span><br><span class="hljs-comment">     \\/     M anipulation  |</span><br><span class="hljs-comment">-------------------------------------------------------------------------------</span><br><span class="hljs-comment">    Copyright (C) 2011-2017 OpenFOAM Foundation</span><br><span class="hljs-comment">    Copyright (C) 2019 OpenCFD Ltd.</span><br><span class="hljs-comment">-------------------------------------------------------------------------------</span><br><span class="hljs-comment">License</span><br><span class="hljs-comment">    This file is part of OpenFOAM.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    OpenFOAM is free software: you can redistribute it and/or modify it</span><br><span class="hljs-comment">    under the terms of the GNU General Public License as published by</span><br><span class="hljs-comment">    the Free Software Foundation, either version 3 of the License, or</span><br><span class="hljs-comment">    (at your option) any later version.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT</span><br><span class="hljs-comment">    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or</span><br><span class="hljs-comment">    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License</span><br><span class="hljs-comment">    for more details.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    You should have received a copy of the GNU General Public License</span><br><span class="hljs-comment">    along with OpenFOAM.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">Application</span><br><span class="hljs-comment">    laplacianFoam</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">Group</span><br><span class="hljs-comment">    grpBasicSolvers</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">Description</span><br><span class="hljs-comment">    Laplace equation solver for a scalar quantity.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    \heading Solver details</span><br><span class="hljs-comment">    The solver is applicable to, e.g. for thermal diffusion in a solid.  The</span><br><span class="hljs-comment">    equation is given by:</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    \f[</span><br><span class="hljs-comment">        \ddt&#123;T&#125;  = \div \left( D_T \grad T \right)</span><br><span class="hljs-comment">    \f]</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    Where:</span><br><span class="hljs-comment">    \vartable</span><br><span class="hljs-comment">        T     | Scalar field which is solved for, e.g. temperature</span><br><span class="hljs-comment">        D_T   | Diffusion coefficient</span><br><span class="hljs-comment">    \endvartable</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    \heading Required fields</span><br><span class="hljs-comment">    \plaintable</span><br><span class="hljs-comment">        T     | Scalar field which is solved for, e.g. temperature</span><br><span class="hljs-comment">    \endplaintable</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;fvCFD.H&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;fvOptions.H&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;simpleControl.H&quot;</span></span><br><br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> *argv[])</span></span><br><span class="hljs-function"></span>&#123;<br>    argList::<span class="hljs-built_in">addNote</span><br>    (<br>        <span class="hljs-string">&quot;Laplace equation solver for a scalar quantity.&quot;</span><br>    );<br><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;postProcess.H&quot;</span></span><br><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;addCheckCaseOptions.H&quot;</span></span><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;setRootCaseLists.H&quot;</span></span><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;createTime.H&quot;</span></span><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;createMesh.H&quot;</span></span><br><br>    <span class="hljs-function">simpleControl <span class="hljs-title">simple</span><span class="hljs-params">(mesh)</span></span>;<br><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;createFields.H&quot;</span> <span class="hljs-comment">//将H文件内容全部拷贝到此,个人相当不推荐这种写法</span></span><br><br>    <span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>    Info&lt;&lt; <span class="hljs-string">&quot;\nCalculating temperature distribution\n&quot;</span> &lt;&lt; endl;<br><br>    <span class="hljs-keyword">while</span> (simple.<span class="hljs-built_in">loop</span>())<br>    &#123;<br>        Info&lt;&lt; <span class="hljs-string">&quot;Time = &quot;</span> &lt;&lt; runTime.<span class="hljs-built_in">timeName</span>() &lt;&lt; nl &lt;&lt; endl;<br><br>        <span class="hljs-keyword">while</span> (simple.<span class="hljs-built_in">correctNonOrthogonal</span>())<br>        &#123;<br><span class="hljs-comment">//            fvScalarMatrix TEqn</span><br><span class="hljs-comment">//            (</span><br><span class="hljs-comment">//                fvm::ddt(T) - fvm::laplacian(DT, T)</span><br><span class="hljs-comment">//             ==</span><br><span class="hljs-comment">//                fvOptions(T)</span><br><span class="hljs-comment">//            );</span><br><span class="hljs-comment">//</span><br><span class="hljs-comment">//            fvOptions.constrain(TEqn);</span><br><span class="hljs-comment">//            TEqn.solve();</span><br><span class="hljs-comment">//            fvOptions.correct(T);</span><br>            <span class="hljs-built_in">solve</span>(fvm::<span class="hljs-built_in">laplacian</span>(p)); <span class="hljs-comment">//求解压力</span><br>        &#125;<br>        U = -kappa/mu * fvc::<span class="hljs-built_in">grad</span>(p); <br>       <span class="hljs-comment">//fvm和fvc都是基于有限体积法进行离散的，但是fvm是将场量离散成为[M][Q] = B的形式，返回的是一个矩阵，在计算中还需要逐步迭代，才能获得场量值</span><br>      <span class="hljs-comment">//fvc则是直接根据场量做离散，再进行计算，返回的是一个场量，这里速度不需要再迭代，所以使用fvc</span><br>        <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;write.H&quot;</span></span><br>        <span class="hljs-comment">//write.H文件比较重要，里面定义了结果的写入，实测如果注释掉，保存不了结果</span><br>        <span class="hljs-comment">//但是原本laplacianFoam中的write.H内容定义了温度的梯度，需要做修改</span><br><br>        runTime.<span class="hljs-built_in">printExecutionTime</span>(Info);<br>    &#125;<br><br>    Info&lt;&lt; <span class="hljs-string">&quot;End\n&quot;</span> &lt;&lt; endl;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>修改write.H文件</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">if</span> (runTime.<span class="hljs-built_in">writeTime</span>())<br>&#123;<br>  <span class="hljs-comment">/* </span><br><span class="hljs-comment">  volVectorField gradT(fvc::grad(T));</span><br><span class="hljs-comment">  //write.H文件内容与creatFields文件十分类似，本质上都是在自定义输出的场</span><br><span class="hljs-comment">  //由于p,U在之前已经定义声明，并且也是AUTO_WRITE，实际上这一段可以忽略掉，因为我们不存在温度梯度</span><br><span class="hljs-comment">    volScalarField gradTx</span><br><span class="hljs-comment">    (</span><br><span class="hljs-comment">        IOobject</span><br><span class="hljs-comment">        (</span><br><span class="hljs-comment">            &quot;gradTx&quot;,</span><br><span class="hljs-comment">            runTime.timeName(),</span><br><span class="hljs-comment">            mesh,</span><br><span class="hljs-comment">            IOobject::NO_READ,</span><br><span class="hljs-comment">            IOobject::AUTO_WRITE</span><br><span class="hljs-comment">        ),</span><br><span class="hljs-comment">        gradT.component(vector::X)</span><br><span class="hljs-comment">    );</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    volScalarField gradTy</span><br><span class="hljs-comment">    (</span><br><span class="hljs-comment">        IOobject</span><br><span class="hljs-comment">        (</span><br><span class="hljs-comment">            &quot;gradTy&quot;,</span><br><span class="hljs-comment">            runTime.timeName(),</span><br><span class="hljs-comment">            mesh,</span><br><span class="hljs-comment">            IOobject::NO_READ,</span><br><span class="hljs-comment">            IOobject::AUTO_WRITE</span><br><span class="hljs-comment">        ),</span><br><span class="hljs-comment">        gradT.component(vector::Y)</span><br><span class="hljs-comment">    );</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    volScalarField gradTz</span><br><span class="hljs-comment">    (</span><br><span class="hljs-comment">        IOobject</span><br><span class="hljs-comment">        (</span><br><span class="hljs-comment">            &quot;gradTz&quot;,</span><br><span class="hljs-comment">            runTime.timeName(),</span><br><span class="hljs-comment">            mesh,</span><br><span class="hljs-comment">            IOobject::NO_READ,</span><br><span class="hljs-comment">            IOobject::AUTO_WRITE</span><br><span class="hljs-comment">        ),</span><br><span class="hljs-comment">        gradT.component(vector::Z)</span><br><span class="hljs-comment">    );</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    volVectorField DTgradT</span><br><span class="hljs-comment">    (</span><br><span class="hljs-comment">        IOobject</span><br><span class="hljs-comment">        (</span><br><span class="hljs-comment">            &quot;flux&quot;,</span><br><span class="hljs-comment">            runTime.timeName(),</span><br><span class="hljs-comment">            mesh,</span><br><span class="hljs-comment">            IOobject::NO_READ,</span><br><span class="hljs-comment">            IOobject::AUTO_WRITE</span><br><span class="hljs-comment">        ),</span><br><span class="hljs-comment">        DT*gradT</span><br><span class="hljs-comment">    );</span><br><span class="hljs-comment">*/</span><br>    runTime.<span class="hljs-built_in">write</span>();<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>按照汪博摸索出来在Clion方法，将求解器重新编译，应该没有语法错误了，可以正常编译。</p>
+<h4 id="生成网格及初始化场">生成网格及初始化场</h4>
+<p>按照图示生成blockMesh Dict</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    object      blockMeshDict;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>scale   <span class="hljs-number">0.01</span>; <span class="hljs-comment">//将米转化为厘米</span><br><br><span class="hljs-built_in">vertices</span> (  <span class="hljs-comment">//按照右手定则设定几何体顶点编号</span><br>    (<span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>)<br>    (<span class="hljs-number">20</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>)<br>    (<span class="hljs-number">20</span> <span class="hljs-number">1</span> <span class="hljs-number">0</span>)<br>    (<span class="hljs-number">0</span> <span class="hljs-number">1</span> <span class="hljs-number">0</span>)<br>    (<span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">1</span>)<br>    (<span class="hljs-number">20</span> <span class="hljs-number">0</span> <span class="hljs-number">1</span>)<br>    (<span class="hljs-number">20</span> <span class="hljs-number">1</span> <span class="hljs-number">1</span>)<br>    (<span class="hljs-number">0</span> <span class="hljs-number">1</span> <span class="hljs-number">1</span>)<br>);<br><br><span class="hljs-built_in">blocks</span><br>(<br>    <span class="hljs-built_in">hex</span> (<span class="hljs-number">0</span> <span class="hljs-number">1</span> <span class="hljs-number">2</span> <span class="hljs-number">3</span> <span class="hljs-number">4</span> <span class="hljs-number">5</span> <span class="hljs-number">6</span> <span class="hljs-number">7</span>) (<span class="hljs-number">20</span> <span class="hljs-number">20</span> <span class="hljs-number">1</span>) <span class="hljs-built_in">simpleGrading</span> (<span class="hljs-number">1</span> <span class="hljs-number">1</span> <span class="hljs-number">1</span>) <br>);<br><br><span class="hljs-built_in">edges</span><br>(<br>);<br><br><span class="hljs-built_in">boundary</span><br>(<br>    inlet <span class="hljs-comment">//边界名，可以自定义</span><br>    &#123;<br>        type patch;  <span class="hljs-comment">//壁面类型，有wall、patch、symmetry等等，不同的边界类型所能设置的边界条件不同，patch是比较广泛的</span><br>        <span class="hljs-built_in">faces</span><br>        (<br>            (<span class="hljs-number">0</span> <span class="hljs-number">4</span> <span class="hljs-number">7</span> <span class="hljs-number">3</span>) <span class="hljs-comment">//构成边界的四个顶点编号</span><br>        );<br>    &#125;<br>    outlet<br>    &#123;<br>        type patch;<br>        <span class="hljs-built_in">faces</span><br>        (<br>            (<span class="hljs-number">1</span> <span class="hljs-number">5</span> <span class="hljs-number">6</span> <span class="hljs-number">2</span>)<br>        );<br>    &#125;<br>    symmetryWalls<br>    &#123;<br>        type symmetry;<br>        <span class="hljs-built_in">faces</span><br>        (<br>            (<span class="hljs-number">0</span> <span class="hljs-number">4</span> <span class="hljs-number">5</span> <span class="hljs-number">1</span>)<br>            (<span class="hljs-number">4</span> <span class="hljs-number">7</span> <span class="hljs-number">6</span> <span class="hljs-number">5</span>)<br>            (<span class="hljs-number">3</span> <span class="hljs-number">7</span> <span class="hljs-number">6</span> <span class="hljs-number">2</span>)<br>            (<span class="hljs-number">0</span> <span class="hljs-number">3</span> <span class="hljs-number">2</span> <span class="hljs-number">1</span>)<br>        );<br>    &#125;<br>    <span class="hljs-built_in">mergePatchPairs</span><br>    (<br><br>    );<br>);<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>初始化场变量，这个案例中，只有压力和速度，初始文件都在0文件夹中，依次更新设置p文件和U文件：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">volScalarField</span>;<br>    object      p;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>dimensions      [<span class="hljs-number">1</span> <span class="hljs-number">-1</span> <span class="hljs-number">-2</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>];  <span class="hljs-comment">// [质量 长度 时间 温度 quantity current Luminous intensity]</span><br><span class="hljs-comment">//这里的p就是p，没有除以密度</span><br>internalField   uniform <span class="hljs-number">0</span>; <span class="hljs-comment">//内部单元压力统一为0</span><br><br>boundaryField<br>&#123;<br>    inlet<br>    &#123;<br>        type            fixedValue;<br>        value           uniform <span class="hljs-number">5e4</span>; <span class="hljs-comment">//设置进口压力为5e4</span><br>    &#125;<br><br>    outlet<br>    &#123;<br>        type            fixedValue;<br>        value           uniform <span class="hljs-number">0</span>; <span class="hljs-comment">//出口压力为0</span><br>    &#125;<br><br>    symmetryWalls<br>    &#123;<br>        type            symmetry;<br>    &#125;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">volScalarField</span>;<br>    object      p;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>dimensions      [<span class="hljs-number">1</span> <span class="hljs-number">-1</span> <span class="hljs-number">-2</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>];  <span class="hljs-comment">// [质量 长度 时间 温度 quantity current Luminous intensity]</span><br><span class="hljs-comment">//这里的p就是p，没有除以密度</span><br>internalField   uniform <span class="hljs-number">0</span>; <span class="hljs-comment">//内部单元压力统一为0</span><br><br>boundaryField<br>&#123;<br>    inlet<br>    &#123;<br>        type            fixedValue;<br>        value           uniform <span class="hljs-number">5e4</span>; <span class="hljs-comment">//设置进口压力为5e4</span><br>    &#125;<br><br>    outlet<br>    &#123;<br>        type            fixedValue;<br>        value           uniform <span class="hljs-number">0</span>; <span class="hljs-comment">//出口压力为0</span><br>    &#125;<br><br>    symmetryWalls<br>    &#123;<br>        type            symmetry;<br>    &#125;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<h4 id="修改物理属性">修改物理属性</h4>
+<p>在方程中，添加了Kappa和mu，量纲一定要对应上，也就是方程左右物理量的单位至少要匹配，实测曾经报错过，在transportPropeties中，空格是十分重要，写在一起会造成读入错误，不能忽视。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    location    <span class="hljs-string">&quot;constant&quot;</span>;<br>    object      transportProperties;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>mu                   mu [<span class="hljs-number">1</span> <span class="hljs-number">-1</span> <span class="hljs-number">-1</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>] <span class="hljs-number">1e-3</span>;<br>kappa                kappa [<span class="hljs-number">0</span> <span class="hljs-number">2</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>] <span class="hljs-number">1e-9</span>;<br><br><span class="hljs-comment">// ************************************************************************* //</span><br></code></pre></td></tr></table></figure>
+<h4 id="修改求解器设置">修改求解器设置</h4>
+<p>controDict文件定义了求解器的使用设置，包括求解器类型（基本没用）、起始时间、计算时间步长、写入结果等设置。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    object      controlDict;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>application     tubeFoam;<br><br>startFrom       startTime;<br><br>startTime       <span class="hljs-number">0</span>;<br><br>stopAt          endTime;<br><br>endTime         <span class="hljs-number">1000</span>;<br><br>deltaT          <span class="hljs-number">1</span>; <span class="hljs-comment">//时间不长</span><br><br>writeControl    timeStep;<br><br>writeInterval   <span class="hljs-number">10</span>;<br><br>purgeWrite      <span class="hljs-number">0</span>;<br><br>writeFormat     ascii;<br><br>writePrecision  <span class="hljs-number">6</span>;<br><br>writeCompression off;<br><br>timeFormat      general;<br><br>timePrecision   <span class="hljs-number">6</span>;<br><br>runTimeModifiable <span class="hljs-literal">true</span>;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>fvSchemes文件则写入了每一项所采用的数值离散格式、插值方法等，由于现在的案例是稳态，需要进行修改。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    object      fvSchemes;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>ddtSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         steadyState; <span class="hljs-comment">//稳态计算</span><br>&#125;<br><br>gradSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         Gauss linear; <span class="hljs-comment">//梯度项计算 计算压力梯度</span><br>&#125;<br><br>divSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         none; <span class="hljs-comment">//方程中实际无散度项，可不需要</span><br>&#125;<br><br>laplacianSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         Gauss linear corrected; <span class="hljs-comment">//接下来几项设置留待后续学习不可压流体的基本原理</span><br>&#125;<br><br>interpolationSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         linear;<br>&#125;<br><br>snGradSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         corrected;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>fvSolusion文件则定义了方程求解方法，主要是<span
+class="math inline">\(Ax = b\)</span>中，线性方程组求解方法。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    object      fvSolution;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>solvers<br>&#123;<br>    p<br>    &#123;<br>        solver          PCG;<br>        preconditioner  DIC;<br>        tolerance       <span class="hljs-number">1e-06</span>;<br>        relTol          <span class="hljs-number">0</span>;<br>    &#125;<br>&#125;<br><br>SIMPLE <br>&#123;<br>    nNonOrthogonalCorrectors <span class="hljs-number">2</span>;<br>    <br>    residualControl<br>    &#123;<br>        p               <span class="hljs-number">1e-6</span>; <br>    &#125;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>运行算例，使用clion，在debug设置中的program arguments中加入-case +
+"算例的绝对地址"，便可以运行和调试算例。</p>
+<h4 id="结果分析">结果分析</h4>
+<p>压力p:</p>
+<figure>
+<img src="./汪博的Openfoam基础课/image-20230611122728288.png" srcset="/img/loading.gif" lazyload
+alt="image-20230611122728288" />
+<figcaption aria-hidden="true">image-20230611122728288</figcaption>
+</figure>
+<p>速度U</p>
+<figure>
+<img src="./汪博的Openfoam基础课/image-20230611122814257.png" srcset="/img/loading.gif" lazyload
+alt="image-20230611122814257" />
+<figcaption aria-hidden="true">image-20230611122814257</figcaption>
+</figure>
+<p>速度U的计算结果看起来并不太正常，案例本质上是二维的，但是由于采用的是均一的进出口边界条件，应该仍然可以看作是一维。<span
+class="math inline">\(\Delta p =
+0\)</span>，进口和出口都是常数，说明<span
+class="math inline">\(p\)</span>是呈现线性分布，从进口处到出口线性下降，因此<span
+class="math inline">\(\nabla p\)</span>应该为常数。而速度<span
+class="math inline">\(U = -\frac{\kappa}{\mu}\nabla
+p\)</span>，说明速度本身应该也是一个常数，但是由于进口速度被限定了，在入口处有一些异常。但是切换到单元视图，显示速度是均匀分布的，如下图所示：</p>
+<figure>
+<img src="./汪博的Openfoam基础课/image-20230612010420795.png" srcset="/img/loading.gif" lazyload
+alt="image-20230612010420795" />
+<figcaption aria-hidden="true">image-20230612010420795</figcaption>
+</figure>
+<ol type="1">
+<li>加密网格</li>
+</ol>
+<p>将网格加密5倍，重新生成网格，并进行计算，查看节点视图。</p>
+<figure>
+<img src="./汪博的Openfoam基础课/image-20230612094703507.png" srcset="/img/loading.gif" lazyload
+alt="image-20230612094703507" />
+<figcaption aria-hidden="true">image-20230612094703507</figcaption>
+</figure>
+<p>当网格进行加密时，入口处的数值异常区域被缩小。其实从单元结果看，速度场的单元结果是均匀且一致的，而节点视图中，节点值需要通过单元值插值获得，因为边界处的值与计算获得的速度场场值有一定差距，所以边界处会有部分数值异常。</p>
+<p>此外，这个反应方程与多孔介质中的达西模型太相似了。</p>
+<h3 id="算例7管式反应器二">算例7管式反应器二</h3>
+<figure>
+<img src="./汪博的Openfoam基础课/image-20230612095108405.png" srcset="/img/loading.gif" lazyload
+alt="image-20230612095108405" />
+<figcaption aria-hidden="true">image-20230612095108405</figcaption>
+</figure>
+<p>在算例中，新增了3个场量，A、B、C，分别表示化学反应物浓度。如果不考虑其中的耦合关系，每一项都是对流扩散方程，似乎应该要满足CFL条件。注意压力和速度仍然是稳态方程，且与A
+B C之间不存在耦合关系。即p和U的计算不受A B C的影响。</p>
+<p>其实这一块，我是存疑的，我觉得这已经和不可压方程很类似了，<span
+class="math inline">\(A+B=C\)</span>就相当于是一个约束条件。应该要迭代修正。我对于显式表达这个概念还没有完全理解，可能需要后续继续学习CFD回头再来补了。</p>
+<h4 id="控制方程修改">控制方程修改</h4>
+<p>首先是增加三个场量，以及增加<span
+class="math inline">\(\omega\)</span>和<span
+class="math inline">\(\mu\)</span>这两个物理量，在原来createFields.H继续新增：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs c++"><br><br>Info&lt;&lt;<span class="hljs-string">&quot;Reaing the field p\n&quot;</span>&lt;&lt;endl;<br><br><span class="hljs-function">volScalarField <span class="hljs-title">p</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">        IOobject(<span class="hljs-string">&quot;p&quot;</span>,runTime.timeName(), mesh, IOobject::MUST_READ, IOobject::AUTO_WRITE),mesh</span></span><br><span class="hljs-params"><span class="hljs-function">)</span></span>; <span class="hljs-comment">//生成了一个标量场对象，名字为p，使用了一个IO类和网格类mesh进行初始化</span><br><br><br>Info&lt;&lt; <span class="hljs-string">&quot;Reading field U\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-function">volVectorField <span class="hljs-title">U</span><span class="hljs-params">(IOobject(<span class="hljs-string">&quot;U&quot;</span>,runTime.timeName(), mesh, IOobject::MUST_READ, IOobject::AUTO_WRITE),mesh)</span></span>;<br><span class="hljs-comment">//与压力类似，这里是声明了一个矢量场U（速度场）</span><br><br>Info&lt;&lt; <span class="hljs-string">&quot;Reading field A\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-function">volScalarField <span class="hljs-title">A</span><span class="hljs-params">(IOobject(<span class="hljs-string">&quot;A&quot;</span>,runTime.timeName(), mesh, IOobject::MUST_READ, IOobject::AUTO_WRITE),mesh)</span></span>;<br><br>Info&lt;&lt; <span class="hljs-string">&quot;Reading field B\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-function">volScalarField <span class="hljs-title">B</span><span class="hljs-params">(IOobject(<span class="hljs-string">&quot;B&quot;</span>,runTime.timeName(), mesh, IOobject::MUST_READ, IOobject::AUTO_WRITE),mesh)</span></span>;<br><br>Info&lt;&lt; <span class="hljs-string">&quot;Reading field C\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-function">volScalarField <span class="hljs-title">C</span><span class="hljs-params">(IOobject(<span class="hljs-string">&quot;C&quot;</span>,runTime.timeName(), mesh, IOobject::MUST_READ, IOobject::AUTO_WRITE),mesh)</span></span>;<br><span class="hljs-comment">//依据p的声明进行修改，注意是标量而非矢量</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&quot;createPhi.H&quot;</span> <span class="hljs-comment">//声明了phi变量，相当重要</span></span><br><br>Info&lt;&lt; <span class="hljs-string">&quot;Reading transportProperties\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-function">IOdictionary <span class="hljs-title">transportProperties</span><span class="hljs-params">(IOobject(<span class="hljs-string">&quot;transportProperties&quot;</span>,runTime.constant(),mesh, IOobject::MUST_READ,IOobject::NO_WRITE))</span></span>;<br><span class="hljs-comment">//这里声明了一个IO字典类，transportProperties就是类名，也是要找的文件，字典类不需要网格数据，所以相比p和U，少了mesh，也不需要在运算过程中写入修改</span><br><br>Info&lt;&lt; <span class="hljs-string">&quot;Reading transportProperties\n&quot;</span> &lt;&lt; endl;<br><span class="hljs-function">dimensionedScalar <span class="hljs-title">mu</span><span class="hljs-params">(<span class="hljs-string">&quot;mu&quot;</span>, transportProperties)</span></span>; <span class="hljs-comment">//从tansportProperties中读取mu的值</span><br><span class="hljs-function">dimensionedScalar <span class="hljs-title">kappa</span><span class="hljs-params">(<span class="hljs-string">&quot;kappa&quot;</span>, transportProperties)</span></span>;<br><br><span class="hljs-function">dimensionedScalar <span class="hljs-title">D</span><span class="hljs-params">(<span class="hljs-string">&quot;D&quot;</span>, transportProperties)</span></span>;<br><span class="hljs-function">dimensionedScalar <span class="hljs-title">v</span><span class="hljs-params">(<span class="hljs-string">&quot;v&quot;</span>, transportProperties)</span></span>;<br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;createFvOptions.H&quot;</span></span><br><br></code></pre></td></tr></table></figure>
+<p>修改求解器，将新增的方程写入求解器中。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*---------------------------------------------------------------------------*\</span><br><span class="hljs-comment">  =========                 |</span><br><span class="hljs-comment">  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox</span><br><span class="hljs-comment">   \\    /   O peration     |</span><br><span class="hljs-comment">    \\  /    A nd           | www.openfoam.com</span><br><span class="hljs-comment">     \\/     M anipulation  |</span><br><span class="hljs-comment">-------------------------------------------------------------------------------</span><br><span class="hljs-comment">    Copyright (C) 2011-2017 OpenFOAM Foundation</span><br><span class="hljs-comment">    Copyright (C) 2019 OpenCFD Ltd.</span><br><span class="hljs-comment">-------------------------------------------------------------------------------</span><br><span class="hljs-comment">License</span><br><span class="hljs-comment">    This file is part of OpenFOAM.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    OpenFOAM is free software: you can redistribute it and/or modify it</span><br><span class="hljs-comment">    under the terms of the GNU General Public License as published by</span><br><span class="hljs-comment">    the Free Software Foundation, either version 3 of the License, or</span><br><span class="hljs-comment">    (at your option) any later version.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT</span><br><span class="hljs-comment">    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or</span><br><span class="hljs-comment">    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License</span><br><span class="hljs-comment">    for more details.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    You should have received a copy of the GNU General Public License</span><br><span class="hljs-comment">    along with OpenFOAM.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">Application</span><br><span class="hljs-comment">    laplacianFoam</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">Group</span><br><span class="hljs-comment">    grpBasicSolvers</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">Description</span><br><span class="hljs-comment">    Laplace equation solver for a scalar quantity.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    \heading Solver details</span><br><span class="hljs-comment">    The solver is applicable to, e.g. for thermal diffusion in a solid.  The</span><br><span class="hljs-comment">    equation is given by:</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    \f[</span><br><span class="hljs-comment">        \ddt&#123;T&#125;  = \div \left( D_T \grad T \right)</span><br><span class="hljs-comment">    \f]</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    Where:</span><br><span class="hljs-comment">    \vartable</span><br><span class="hljs-comment">        T     | Scalar field which is solved for, e.g. temperature</span><br><span class="hljs-comment">        D_T   | Diffusion coefficient</span><br><span class="hljs-comment">    \endvartable</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">    \heading Required fields</span><br><span class="hljs-comment">    \plaintable</span><br><span class="hljs-comment">        T     | Scalar field which is solved for, e.g. temperature</span><br><span class="hljs-comment">    \endplaintable</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;fvCFD.H&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;fvOptions.H&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;simpleControl.H&quot;</span></span><br><br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> *argv[])</span></span><br><span class="hljs-function"></span>&#123;<br>    argList::<span class="hljs-built_in">addNote</span><br>    (<br>        <span class="hljs-string">&quot;Laplace equation solver for a scalar quantity.&quot;</span><br>    );<br><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;postProcess.H&quot;</span></span><br><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;addCheckCaseOptions.H&quot;</span></span><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;setRootCaseLists.H&quot;</span></span><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;createTime.H&quot;</span></span><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;createMesh.H&quot;</span></span><br><br>    <span class="hljs-function">simpleControl <span class="hljs-title">simple</span><span class="hljs-params">(mesh)</span></span>;<br><br>    <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;createFields.H&quot;</span> </span><br><br>    <span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>    Info&lt;&lt; <span class="hljs-string">&quot;\nCalculating temperature distribution\n&quot;</span> &lt;&lt; endl;<br><br>    <span class="hljs-keyword">while</span> (simple.<span class="hljs-built_in">loop</span>())<br>    &#123;<br>        Info&lt;&lt; <span class="hljs-string">&quot;Time = &quot;</span> &lt;&lt; runTime.<span class="hljs-built_in">timeName</span>() &lt;&lt; nl &lt;&lt; endl;<br><br>        <span class="hljs-keyword">while</span> (simple.<span class="hljs-built_in">correctNonOrthogonal</span>())<br>        &#123;<br>            <span class="hljs-built_in">solve</span>(fvm::<span class="hljs-built_in">laplacian</span>(p)); <span class="hljs-comment">//求解压力</span><br>            U = -kappa/mu * fvc::<span class="hljs-built_in">grad</span>(p); <span class="hljs-comment">//U已经在Simple循环中，而不是在循环外了。</span><br>            phi = <span class="hljs-built_in">linearInterpolate</span>(U) &amp; mesh.<span class="hljs-built_in">Sf</span>(); <span class="hljs-comment">//在createPhi中已经声明，插值生成单元面上的速度，方便计算通量</span><br>            <span class="hljs-built_in">solve</span><br>            (<br>                    fvm::<span class="hljs-built_in">ddt</span>(A) + fvm::<span class="hljs-built_in">div</span>(phi, A) == fvm::<span class="hljs-built_in">laplacian</span>(D, A) - v*A*B<br>            );<br><br>            <span class="hljs-built_in">solve</span><br>            (<br>                    fvm::<span class="hljs-built_in">ddt</span>(B) + fvm::<span class="hljs-built_in">div</span>(phi, B) == fvm::<span class="hljs-built_in">laplacian</span>(D, B) - v*A*B<br>            );<br><br>            <span class="hljs-built_in">solve</span><br>            (<br>                    fvm::<span class="hljs-built_in">ddt</span>(C) + fvm::<span class="hljs-built_in">div</span>(phi, C) == fvm::<span class="hljs-built_in">laplacian</span>(D, C) + v*A*B<br>            );<br>        &#125;<br><br>        <span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;write.H&quot;</span></span><br>        runTime.<span class="hljs-built_in">printExecutionTime</span>(Info);<br>    &#125;<br><br>    Info&lt;&lt; <span class="hljs-string">&quot;End\n&quot;</span> &lt;&lt; endl;<br><br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>程序的要点是理解物理量<span
+class="math inline">\(\varphi\)</span>，抛开程序主框架中的simple.correctNonOrthogonal()，SIMPLE算法问题，只看<span
+class="math inline">\(\varphi\)</span>，createPhi.H中文件内容如下，其实定义的是一个在面上的通量场。</p>
+<figure>
+<img src="./汪博的Openfoam基础课/image-20230612112149365.png" srcset="/img/loading.gif" lazyload
+alt="image-20230612112149365" />
+<figcaption aria-hidden="true">image-20230612112149365</figcaption>
+</figure>
+<p>以一个不可压、无热源的热传导方程为例，方程如下： <span
+class="math display">\[
+\frac{\partial T}{\partial t} + \nabla \cdot (UT) = D\Delta T
+\]</span></p>
+<p>基本与上述方程(4)一致，除了没有源项，在openfoam中植入的代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++">fvm::<span class="hljs-built_in">ddt</span>(T) + fvm::<span class="hljs-built_in">div</span>(phi,T) - fvm::<span class="hljs-built_in">lapalacian</span>(D,T) = <span class="hljs-number">0</span><br></code></pre></td></tr></table></figure>
+<p>很明显这里的phi指代的是速度U，但是phi与U的数据类型并不相同，两者不能等价。这就需要考虑散度项的计算过程：</p>
+<p>运用高斯公式，可以将散度项的体积分转化为曲面积分，Openfoam采用有限体积法，是需要在单元上对散度项进行体积分的。运用高斯公式：
+<span class="math display">\[
+\int \nabla  \cdot  (\varPhi T)dv = \oint \varPhi T\cdot nds
+\]</span></p>
+<p>散度项积分最后转化为通量面积分，在单元上进一步离散，通量面积分转化为单元每一面的面积与通量乘积的累加和：
+<span class="math display">\[
+\oint \varPhi T\cdot nds\approx \sum T \cdot \varPhi(n) \Delta S
+\]</span> 在求解器代码中，有一行语句如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c++">phi = <span class="hljs-built_in">linearInterpolate</span>(U) &amp; mesh.<span class="hljs-built_in">Sf</span>();<br></code></pre></td></tr></table></figure>
+<p>就是生成单元面上的速度值，作为计算通量的依据，再由fvm::div()散度项进行计算。</p>
+<p>另外就是，在可压与不可压方程中，<span
+class="math inline">\(\varphi\)</span>所指代的量并不一致，可以查看https://www.cfd-online.com/Forums/openfoam-solving/58443-what-phi-simplefoam.html。</p>
+<h4 id="修改初始条件及边界条件">修改初始条件及边界条件</h4>
+<p>由于定义了三个新场量，A B
+C需要一一设定其初始条件及边界条件，在0文件夹中新建A B C三个文件。</p>
+<ol type="1">
+<li>A文件（基本从p文件拷贝过来，注意量纲）</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">volScalarField</span>;<br>    object      A;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>dimensions      [<span class="hljs-number">0</span> <span class="hljs-number">-3</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>];  <span class="hljs-comment">// 体积浓度</span><br><br>internalField   uniform <span class="hljs-number">0</span>; <span class="hljs-comment">//</span><br><br>boundaryField<br>&#123;<br>    inlet<br>    &#123;<br>        type            fixedValue;<br>        value           uniform <span class="hljs-number">2</span>; <br>    &#125;<br><br>    outlet<br>    &#123;<br>        type            zeroGradient;<br>    &#125;<br><br>    symmetryWalls<br>    &#123;<br>        type            symmetry;<br>    &#125;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<ol start="2" type="1">
+<li>B文件</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">volScalarField</span>;<br>    object      B;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>dimensions      [<span class="hljs-number">0</span> <span class="hljs-number">-3</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>];  <span class="hljs-comment">// 体积浓度</span><br><br>internalField   uniform <span class="hljs-number">0</span>; <span class="hljs-comment">//</span><br><br>boundaryField<br>&#123;<br>    inlet<br>    &#123;<br>        type            fixedValue;<br>        value           uniform <span class="hljs-number">1</span>; <br>    &#125;<br><br>    outlet<br>    &#123;<br>        type            zeroGradient;<br>    &#125;<br><br>    symmetryWalls<br>    &#123;<br>        type            symmetry;<br>    &#125;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<ol start="3" type="1">
+<li>C文件</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">volScalarField</span>;<br>    object      B;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>dimensions      [<span class="hljs-number">0</span> <span class="hljs-number">-3</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>];  <span class="hljs-comment">// 体积浓度</span><br><br>internalField   uniform <span class="hljs-number">0</span>; <span class="hljs-comment">//</span><br><br>boundaryField<br>&#123;<br>    inlet<br>    &#123;<br>        type            fixedValue;<br>        value           uniform <span class="hljs-number">0</span>; <br>    &#125;<br><br>    outlet<br>    &#123;<br>        type            zeroGradient;<br>    &#125;<br><br>    symmetryWalls<br>    &#123;<br>        type            symmetry;<br>    &#125;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>同时，新增了一个扩散系数和一个源项系数，修改transportProperties文件</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2012                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    location    <span class="hljs-string">&quot;constant&quot;</span>;<br>    object      transportProperties;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>mu                   mu [<span class="hljs-number">1</span> <span class="hljs-number">-1</span> <span class="hljs-number">-1</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>] <span class="hljs-number">1e-3</span>;<br>kappa                kappa [<span class="hljs-number">0</span> <span class="hljs-number">2</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>] <span class="hljs-number">1e-9</span>;<br><br>v                    v [<span class="hljs-number">0</span> <span class="hljs-number">3</span> <span class="hljs-number">-1</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>] <span class="hljs-number">0.2</span>; <span class="hljs-comment">//源项系数</span><br>D                    D [<span class="hljs-number">0</span> <span class="hljs-number">2</span> <span class="hljs-number">-1</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span> <span class="hljs-number">0</span>] <span class="hljs-number">1e-6</span>; <span class="hljs-comment">//扩散系数</span><br><span class="hljs-comment">// ************************************************************************* //</span><br></code></pre></td></tr></table></figure>
+<h4 id="修改数值格式及求解器">修改数值格式及求解器</h4>
+<p>由于出现了散度项，时间偏导项，原有的数值格式已不再适用，需要重新设定，修改fvSchemes文件</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    object      fvSchemes;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>ddtSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         Euler; <span class="hljs-comment">//欧拉差分格式</span><br>&#125;<br><br>gradSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         Gauss linear; <span class="hljs-comment">//梯度项计算 计算压力梯度</span><br>&#125;<br><br>divSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         Gauss linear; <span class="hljs-comment">//散度项计算</span><br>&#125;<br><br>laplacianSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         Gauss linear corrected; <span class="hljs-comment">//接下来几项设置留待后续学习不可压流体的基本原理</span><br>&#125;<br><br>interpolationSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         linear;<br>&#125;<br><br>snGradSchemes<br>&#123;<br>    <span class="hljs-keyword">default</span>         corrected;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>对于A B C三个物理场的求解，也需要设定相应的矩阵计算方法：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2212                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    object      fvSolution;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>solvers<br>&#123;<br>    p<br>    &#123;<br>        solver          PCG;<br>        preconditioner  DIC;<br>        tolerance       <span class="hljs-number">1e-06</span>;<br>        relTol          <span class="hljs-number">0</span>;<br>    &#125;<br><br>    <span class="hljs-string">&quot;(A|B|C)&quot;</span><br>    &#123;<br>        solver          PBiCG;    <span class="hljs-comment">// 非对称阵求解器</span><br>        preconditioner  DILU;<br>        tolerance       <span class="hljs-number">1e-06</span>;<br>        relTol          <span class="hljs-number">0</span>;<br>    &#125;<br><br>&#125;<br><br>SIMPLE<br>&#123;<br>    nNonOrthogonalCorrectors <span class="hljs-number">0</span>; <span class="hljs-comment">//无压力修正</span><br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>最后更新一下求解设置，修改controlDict文件</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2012                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    location    <span class="hljs-string">&quot;system&quot;</span>;<br>    object      controlDict;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>application     tubeFoam;<br><br>startFrom       startTime;<br><br>startTime       <span class="hljs-number">0</span>;<br><br>stopAt          endTime;<br><br>endTime         <span class="hljs-number">30</span>;<br><br>deltaT          <span class="hljs-number">0.1</span>;<br><br>writeControl    runTime;<br><br>writeInterval   <span class="hljs-number">5</span>;<br><br>purgeWrite      <span class="hljs-number">0</span>;<br><br>writeFormat     ascii;<br><br>writePrecision  <span class="hljs-number">6</span>;<br><br>writeCompression off;<br><br>timeFormat      general;<br><br>timePrecision   <span class="hljs-number">6</span>;<br><br>runTimeModifiable <span class="hljs-literal">true</span>;<br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<h4 id="结果分析-1">结果分析</h4>
+<figure>
+<img src="./汪博的Openfoam基础课/image-20230612144815819.png" srcset="/img/loading.gif" lazyload
+alt="image-20230612144815819" />
+<figcaption aria-hidden="true">image-20230612144815819</figcaption>
+</figure>
+<p>这是最后时间步上，A B
+C三个物理量的分布，相当奇怪的结果。这个方程后续可以自行编程计算，再对比一下结果。</p>
+<h3
+id="算例8湍流管道详细留待后续补充">算例8湍流管道（详细留待后续补充）</h3>
+<p>几何图形</p>
+<figure>
+<img src="./汪博的Openfoam基础课/image-20230612145428382-6552871.png" srcset="/img/loading.gif" lazyload
+alt="image-20230612145428382" />
+<figcaption aria-hidden="true">image-20230612145428382</figcaption>
+</figure>
+<p>不可压动量方程： <span class="math display">\[
+\mathbf{U}\nabla\cdot\mathbf{U} = -\frac{\nabla p}{\rho} +
+\nabla\cdot(\nu\nabla\mathbf{U}) + \color{red}{turbulence}
+\]</span>
+算例8涉及到湍流模型，CFD中的湍流模型的计算原理与植入暂时还不清楚，所以先跳过这一部分的设置与背后的算法原理。</p>
+<h4 id="修改初始条件湍流模型">修改初始条件、湍流模型</h4>
+<p>之前的算例是层流模型，现在修改回湍流模型</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-comment">/*--------------------------------*- C++ -*----------------------------------*\</span><br><span class="hljs-comment">| =========                 |                                                 |</span><br><span class="hljs-comment">| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |</span><br><span class="hljs-comment">|  \\    /   O peration     | Version:  v2206                                 |</span><br><span class="hljs-comment">|   \\  /    A nd           | Website:  www.openfoam.com                      |</span><br><span class="hljs-comment">|    \\/     M anipulation  |                                                 |</span><br><span class="hljs-comment">\*---------------------------------------------------------------------------*/</span><br>FoamFile<br>&#123;<br>    version     <span class="hljs-number">2.0</span>;<br>    format      ascii;<br>    <span class="hljs-keyword">class</span>       <span class="hljs-title class_">dictionary</span>;<br>    object      turbulenceProperties;<br>&#125;<br><span class="hljs-comment">// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //</span><br><br>simulationType      RAS;<br><br>RAS<br>&#123;<br>    <span class="hljs-comment">// Tested with kEpsilon, realizableKE, kOmega, kOmegaSST,</span><br>    <span class="hljs-comment">// ShihQuadraticKE, LienCubicKE.</span><br>    RASModel        kEpsilon;<br><br>    turbulence      on;<br><br>    printCoeffs     on;<br>&#125;<br><br><br><span class="hljs-comment">// ************************************************************************* //</span><br><br></code></pre></td></tr></table></figure>
+<p>修改速度进口速度，此处并不是再固定值或者是均一的速度入口，而是变化的速度入口</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OpenFoam%E5%AD%A6%E4%B9%A0/">#OpenFoam学习</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>汪洋博士的Openfoam基础课程的学习记录一</div>
+      <div>http://example.com/2023/01/05/post04/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Biheng Xie</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年1月5日</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>许可协议</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/01/07/post5/" title="汪洋博士的Openfoam基础课程的学习记录二">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">汪洋博士的Openfoam基础课程的学习记录二</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/12/03/post3/" title="Openfoam学习记录 - 基本的文件结构">
+                        <span class="hidden-mobile">Openfoam学习记录 - 基本的文件结构</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.1/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
