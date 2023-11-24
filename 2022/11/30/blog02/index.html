@@ -23,15 +23,15 @@
 <meta property="og:site_name" content="Xiao Ren和Xiao Xie的博客">
 <meta property="og:description" content="安装的准备 现在OpenFOAM已经更新到了第十版，之所以安装5版本，是因为我个人现在做CFD-DEM耦合的工作，CFDEM耦合软件支持的OpenFOAM就是5.x版本。不管是哪一个版本，安装过程和准备文件是基本一致的。 安装过程主要参考如下博客和帖子： https:&#x2F;&#x2F;www.cfd-china.com&#x2F;topic&#x2F;4296&#x2F;一种集群非root用户编译openfoam的方法-基于centos7">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/img/tianmen.jpeg">
+<meta property="og:image" content="http://example.com/img/zhangjiajie.jpeg">
 <meta property="article:published_time" content="2022-11-30T08:07:53.000Z">
-<meta property="article:modified_time" content="2023-03-03T01:59:23.100Z">
+<meta property="article:modified_time" content="2023-11-24T03:37:08.206Z">
 <meta property="article:author" content="Biheng Xie">
 <meta property="article:tag" content="偏微分方程数值解">
 <meta property="article:tag" content="CFD">
 <meta property="article:tag" content="随笔">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://example.com/img/tianmen.jpeg">
+<meta name="twitter:image" content="http://example.com/img/zhangjiajie.jpeg">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
@@ -196,7 +196,7 @@
   
 
 <div id="banner" class="banner" parallax=true
-     style="background: url('/img/tianmen.jpeg') no-repeat center center; background-size: cover;">
+     style="background: url('/img/zhangjiajie.jpeg') no-repeat center center; background-size: cover;">
   <div class="full-bg-img">
     <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
       <div class="banner-text text-center fade-in-up">
@@ -294,12 +294,9 @@
                 
                 <h1 id="安装的准备">安装的准备</h1>
 <p>现在OpenFOAM已经更新到了第十版，之所以安装5版本，是因为我个人现在做CFD-DEM耦合的工作，CFDEM耦合软件支持的OpenFOAM就是5.x版本。不管是哪一个版本，安装过程和准备文件是基本一致的。
-安装过程主要参考如下博客和帖子： <a
-target="_blank" rel="noopener" href="https://www.cfd-china.com/topic/4296/">https://www.cfd-china.com/topic/4296/</a>一种集群非root用户编译openfoam的方法-基于centos7
-<a
-target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_41734903/article/details/105125214">https://blog.csdn.net/weixin_41734903/article/details/105125214</a>
-<a
-target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42230462/article/details/115555172">https://blog.csdn.net/weixin_42230462/article/details/115555172</a></p>
+安装过程主要参考如下博客和帖子： <a target="_blank" rel="noopener" href="https://www.cfd-china.com/topic/4296/">https://www.cfd-china.com/topic/4296/</a>一种集群非root用户编译openfoam的方法-基于centos7
+<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_41734903/article/details/105125214">https://blog.csdn.net/weixin_41734903/article/details/105125214</a>
+<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42230462/article/details/115555172">https://blog.csdn.net/weixin_42230462/article/details/115555172</a></p>
 <h2 id="文件清单">文件清单</h2>
 <p>采用编译安装方式，首要就是准备好OpenFOAM的源代码，这个通过git
 clone或者下载官网上的源码压缩包就可以了。 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">git <span class="hljs-built_in">clone</span> git://github.com/OpenFOAM/OpenFOAM-5.x.git<br>git <span class="hljs-built_in">clone</span> git://github.com/OpenFOAM/ThirdParty-5.x.git<br></code></pre></td></tr></table></figure>
@@ -328,16 +325,12 @@ found这样的错误，并且显示了mpicc的路径就是安装成功了。</p>
 如果没有报错，说明可以正式编译OpenFOAM了，先进入到Third-party下面：
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">./Allclean<br>./Allwmake -j4<br><span class="hljs-comment">#如果在集群上，可以用更多核心编译，速度会变快 srun -c64 ./Allwmake -j64</span><br></code></pre></td></tr></table></figure> 如果编译顺利通过，可以编译OpenFOAM: <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> ~/OpenFOAM/OpenFOAM-5.x<br>./Allwmake -j4 <span class="hljs-comment">#耗时数小时</span><br><span class="hljs-comment">#同理如果在集群上，可以用更多核心编译，速度会变快 srun -c64 ./Allwmake -j64</span><br></code></pre></td></tr></table></figure>
 如果没有报错，可以执行一下blockMesh，如果看到出现OpenFOAM的标志，就是安装成功了
-<img
-src="https://cdn.nlark.com/yuque/0/2022/png/34567141/1669996035908-f8cdf2e6-bd70-412c-9b9c-6f5b489cc556.png#averageHue=%23fcfcfc&amp;clientId=u417a18bd-49e7-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=346&amp;id=u284e3e3e&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=346&amp;originWidth=914&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=150713&amp;status=done&amp;style=none&amp;taskId=u75ff3184-01f4-48ed-a678-871b005d833&amp;title=&amp;width=914" srcset="/img/loading.gif" lazyload
-alt="image.png" /></p>
+<img src="https://cdn.nlark.com/yuque/0/2022/png/34567141/1669996035908-f8cdf2e6-bd70-412c-9b9c-6f5b489cc556.png#averageHue=%23fcfcfc&amp;clientId=u417a18bd-49e7-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=346&amp;id=u284e3e3e&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=346&amp;originWidth=914&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=150713&amp;status=done&amp;style=none&amp;taskId=u75ff3184-01f4-48ed-a678-871b005d833&amp;title=&amp;width=914" srcset="/img/loading.gif" lazyload alt="image.png"></p>
 <h1 id="可能遇到的错误">可能遇到的错误</h1>
 <p>目前我遇到的错误，绝大多数情况都是找不到mpi.h，这个是由于openmpi没有配置好。如果按照文中的步骤，最后能看到mpi的环境成功配置应该就没有问题。
 其次，找不到****.h或者***.c大部分是因为缺少依赖库。例如我一开始在本地虚拟机安装了glibc，libtool库，但是集群中没有，编译一直不过，这个时候建议首先检查依赖库。
 最后一个，如果Third-party能够成功编译，基本上OpenFOAM也能顺利编译，如果最后实在是编译不过，也找不到原因。可以将本地编译好的Thirdparty打包上传到集群再解压，然后再重新编译，这也是为什么要保持本地虚拟机和集群，操作系统以及安装操作一致性的原因。因为本地虚拟机，权限和上网可控，但是集群都不行，本地的编译出现问题较容易解决。
-最后看一下我自己的.bashrc文件 <img
-src="https://cdn.nlark.com/yuque/0/2022/png/34567141/1669996433706-a2323a2a-3a2f-4a42-aac0-f72f887a5100.png#averageHue=%23f6f9e9&amp;clientId=u417a18bd-49e7-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=235&amp;id=u51a4108e&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=235&amp;originWidth=480&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=161333&amp;status=done&amp;style=none&amp;taskId=u101bf169-95f6-4f9e-8754-ba3cd834169&amp;title=&amp;width=480" srcset="/img/loading.gif" lazyload
-alt="image.png" /></p>
+最后看一下我自己的.bashrc文件 <img src="https://cdn.nlark.com/yuque/0/2022/png/34567141/1669996433706-a2323a2a-3a2f-4a42-aac0-f72f887a5100.png#averageHue=%23f6f9e9&amp;clientId=u417a18bd-49e7-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=235&amp;id=u51a4108e&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=235&amp;originWidth=480&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=161333&amp;status=done&amp;style=none&amp;taskId=u101bf169-95f6-4f9e-8754-ba3cd834169&amp;title=&amp;width=480" srcset="/img/loading.gif" lazyload alt="image.png"></p>
 
                 
               </div>
@@ -409,7 +402,7 @@ alt="image.png" /></p>
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/12/03/post3/" title="Openfoam学习记录 - 基本的文件结构">
+                      <a href="/2022/12/03/post03/" title="Openfoam学习记录 - 基本的文件结构">
                         <i class="iconfont icon-arrowleft"></i>
                         <span class="hidden-mobile">Openfoam学习记录 - 基本的文件结构</span>
                         <span class="visible-mobile">上一篇</span>
