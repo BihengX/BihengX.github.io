@@ -1,0 +1,862 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Biheng Xie">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="基于有限体积法和交错网格的SIMPLE算法推导及实现 SIMPLE算法，半隐式速度压力耦合算法，是专门求解不可压流体流动的算法。由于不可压流体控制方程中，密度常常被视为常数，没有表征流体密度、压力、温度联系的状态方程，压力以梯度项的形式存在于动量方程中，无法显性表达或者直接求解，造成了求解上的困难。因此需要对速度和压力进行解耦，其基本思想是，通过预设的压力场，代入到动量方程中，求解各方向上的速度场">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于有限体积法和交错网格的SIMPLE算法推导及实现">
+<meta property="og:url" content="http://example.com/2024/05/02/post05/index.html">
+<meta property="og:site_name" content="Xiao Ren和Xiao Xie的博客">
+<meta property="og:description" content="基于有限体积法和交错网格的SIMPLE算法推导及实现 SIMPLE算法，半隐式速度压力耦合算法，是专门求解不可压流体流动的算法。由于不可压流体控制方程中，密度常常被视为常数，没有表征流体密度、压力、温度联系的状态方程，压力以梯度项的形式存在于动量方程中，无法显性表达或者直接求解，造成了求解上的困难。因此需要对速度和压力进行解耦，其基本思想是，通过预设的压力场，代入到动量方程中，求解各方向上的速度场">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/longlingong.jpeg">
+<meta property="article:published_time" content="2024-05-02T08:07:53.000Z">
+<meta property="article:modified_time" content="2024-05-11T11:49:10.050Z">
+<meta property="article:author" content="Biheng Xie">
+<meta property="article:tag" content="Openfoam学习">
+<meta property="article:tag" content="C++">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/longlingong.jpeg">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>基于有限体积法和交错网格的SIMPLE算法推导及实现 - Xiao Ren和Xiao Xie的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.2","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Xiao Ren和Xiao Xie的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/longlingong.jpeg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="基于有限体积法和交错网格的SIMPLE算法推导及实现"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        Biheng Xie
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-05-02 16:07" pubdate>
+          2024年5月2日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          16k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          137 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">基于有限体积法和交错网格的SIMPLE算法推导及实现</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="基于有限体积法和交错网格的simple算法推导及实现">基于有限体积法和交错网格的SIMPLE算法推导及实现</h1>
+<p>SIMPLE算法，半隐式速度压力耦合算法，是专门求解不可压流体流动的算法。由于不可压流体控制方程中，密度常常被视为常数，没有表征流体密度、压力、温度联系的状态方程，压力以梯度项的形式存在于动量方程中，无法显性表达或者直接求解，造成了求解上的困难。因此需要对速度和压力进行解耦，其基本思想是，通过预设的压力场，代入到动量方程中，求解各方向上的速度场；然后根据质量守恒方程构建压力泊松方程，进行压力修正，再进行速度修正，反复迭代，直到达到预设的收敛条件。</p>
+<h2 id="交错网格">交错网格</h2>
+<p>与交错网格相对的是同位网格，再RC插值方法提出之前，压力、速度都存于同一套网格中，共用网格节点。例如x方向的压力梯度项采用中心差分格式:
+<span class="math display">\[
+\frac{\partial P}{\partial x} = \frac{P_E - P_W}{2 \delta x}
+\]</span> 并没有使用到中心节点<span class="math inline">\(P_C\)</span>的值，而在棋盘振荡的压力场时，很容易被认为是无压力梯度，即均匀压力场。造成脱离真实物理的情况。因此交错网格被提出，交错网格中，压力、温度、密度这一类标量存在一套网格中，而各方向上的速度则存在另外一套网格中，速度网格的中心与压力网格中心并不重合，存在一定偏差，速度网格中心一般定义在压力网格面的中心上。如果是均匀网格，则速度网格与压力网格偏差了“半个网格”。交错网格的优势很多，例如速度网格中心在压力网格面上，在求解压力修正方程时，不需要对速度再进行插值。避免了离散压力梯度存在的“棋盘格”问题。但是交错网格的致命缺陷就是使用非常复杂和繁琐，存储成本高，程序编制难度高，边界条件比较难处理，都是致命缺陷。</p>
+<h2 id="稳态二维各向同性流体动力学方程">稳态二维各向同性流体动力学方程</h2>
+<p>二维情况下稳态动力学方程组如下： <span class="math display">\[
+\frac\partial{\partial x}(\rho uu)+\frac\partial{\partial y}(\rho
+vu)=\frac\partial{\partial x}\Bigg(\mu\frac{\partial u}{\partial
+x}\Bigg)+\frac\partial{\partial y}\Bigg(\mu\frac{\partial u}{\partial
+y}\Bigg)-\frac{\partial p}{\partial x}+S_u
+\]</span></p>
+<p><span class="math display">\[
+\frac\partial{\partial x}(\rho uv)+\frac\partial{\partial y}(\rho
+vv)=\frac\partial{\partial x}\Bigg(\mu\frac{\partial v}{\partial
+x}\Bigg)+\frac\partial{\partial y}\Bigg(\mu\frac{\partial v}{\partial
+y}\Bigg)-\frac{\partial p}{\partial y}+S_v
+\]</span></p>
+<p>连续性方程: <span class="math display">\[
+\frac\partial{\partial x}(\rho u)+\frac\partial{\partial y}(\rho v)=0
+\]</span> 其中，对于各向同性的不可压流体而言，密度<span class="math inline">\(\rho\)</span>和粘性系数<span class="math inline">\(\mu\)</span>为常数，可以提出微分符号外，并进一步化简。使用交错网格，即标量、矢量（分量）分别存在一套网格中，彼此错位。但是，在列离散方程时，以变量为核心，以变量所处的网格为依据进行离散。例如，对x方向的动量方程进行离散，所求解的是速度的x分量<span class="math inline">\(u\)</span>，就以<span class="math inline">\(u\)</span>网格为核心进行离散，所使用的网格编号就是<span class="math inline">\(u\)</span>网格的网格编号。</p>
+<p><img src="https://bihengnew-1259679794.cos.ap-nanjing.myqcloud.com/image-20240430225722509.png" srcset="/img/loading.gif" lazyload alt="image-20240430225722509" style="zoom:50%;"></p>
+<p>上图是交错网格的示意图，对应的是流场内部节点。速度u分量的网格中心(u-cell)，刚好位于标量p(p-cell)网格的左右边界上，速度v分量的网格中心位于标量p网格的上下边界上。交错网格因为网格编号比较复杂，容易搞混，实际上只要记住一点，就可以理清楚三套网格的位置差异，即以行号i，列号j的p-cell网格为基准，行号i，列号j的u-cell网格在p-cell网格的左边界，行号i，列号j的v-cell网格在p-cell网格的右边界。记住这个转换关系就可以理清在程序编写时，同一i,j对于不同网格的相对位置关系。</p>
+<h2 id="动量方程离散">动量方程离散</h2>
+<p>对对流项，采用一阶迎风格式，扩散项采用前向差分格式，注意，因为速度的方向是未知的，并不一定沿着坐标正方向，所以需要写成通用格式离散。首先忽略体积力源项，采用有限体积法对方程左右进行二维情况下的体积分，将方程进行半离散，可得：
+
+$$
+\int {{{\left. {\rho uu} \right|}_e}dy}  - \int {{{\left. {\rho uu} \right|}_w}dy}  + \int {{{\left. {\rho vu} \right|}_n}dx}  - \int {{{\left. {\rho vu} \right|}_s}dx}  = \left( {\int {{{\left. {\mu \frac{{\partial u}}{{\partial x}}} \right|}_e}dy}  - \int {{{\left. {\mu \frac{{\partial u}}{{\partial x}}} \right|}_w}dy} } \right) + \left( {\int {\mu {{\left. {\frac{{\partial u}}{{\partial y}}} \right|}_n}dx}  - \int {\mu {{\left. {\frac{{\partial u}}{{\partial y}}} \right|}_s}dx} } \right) + \int { - \frac{{\partial p}}{{\partial x}}dxdy} 
+$$
+
+将对流项和扩散项进行合并，再进行离散，以从u-cell右侧界面流入网格的通量为例：
+
+$$
+\int {{{\left. {\rho uu} \right|}_e}dy}  - \int {{{\left. {\mu \frac{{\partial u}}{{\partial x}}} \right|}_e}dy}  = \left( {\left( {\frac{{{{\left| {\rho {u_{n - 1}}} \right|}_e} + {{\left. {\rho {u_{n - 1}}} \right|}_e}}}{2}} \right){u_P} - \left( {\frac{{{{\left| {\rho {u_{n - 1}}} \right|}_e} + {{\left. {\rho {u_{n - 1}}} \right|}_e}}}{2}} \right){u_E} - \frac{{{u_{E - }}{u_P}}}{{\Delta x}}} \right)\Delta y
+$$
+</p>
+
+上式中，$\rho u_{n-1}$为质量通量，由于原本的$\rho u u$为非线性项，直接迭代较为困难。所以这里采用延迟修正，即使用上一步迭代计算得到的速度，来计算质量通量。当迭代残差越小时，上一步迭代的结果越接近当前迭代步计算得到的结果，实现一种类似“追赶”效果，直到两者误差在可接受范围内。$u_P$为当前u-cell网格中的u速度，$u_E$为右侧u-cell中心的u速度。$\int {{{\left. {\rho uu} \right|}_e}dy}$采用一阶迎风格式进行离散。而$\int {{{\left. {\mu \frac{{\partial u}}{{\partial x}}} \right|}_e}dy}$则使用了前向差分，一阶格式进行离散得到。这里$\mu$被认为是一个常数，简化了运算，否则，$\mu$实际上需要被当做一个场量来处理，需要通过紧邻点的$\mu$值得到。
+
+<p>注意<span class="math inline">\(\rho
+u_{n-1}\)</span>是u-cell右侧边界上的通量值，它仍然需要通过插值来获得，如下图所示：</p>
+<p><img src="https://bihengnew-1259679794.cos.ap-nanjing.myqcloud.com/image-20240430235703587.png" srcset="/img/loading.gif" lazyload alt="image-20240430235703587" style="zoom:50%;"></p>
+<p>通过对界面邻近网格的体心值进行插值可以得到界面上的值： <span class="math display">\[
+\rho u_{n-1} = \rho\frac{u_P^{n-1} + u_E^{n-1}}{2}
+\]</span> 因为流体是均质不可压流体，密度被设为常数。</p>
+<p>同理可得其余项的离散方程： 
+$$
+\int {{{\left. {\rho uu} \right|}_w}dy}  - \int {{{\left. {\mu \frac{{\partial u}}{{\partial x}}} \right|}_w}dy}  = \left( {\left( {\frac{{{{\left| {\rho {u_{n - 1}}} \right|}_w} + {{\left. {\rho {u_{n - 1}}} \right|}_w}}}{2}} \right){u_W} - \left( {\frac{{{{\left| {\rho {u_{n - 1}}} \right|}_e} - {{\left. {\rho {u_{n - 1}}} \right|}_e}}}{2}} \right){u_P} - \frac{{{u_{P - }}{u_W}}}{{\Delta x}}} \right)\Delta y
+$$
+
+$$
+\int {{{\left. {\rho vu} \right|}_n}dy}  - \int {{{\left. {\mu \frac{{\partial u}}{{\partial y}}} \right|}_n}dx}  = \left( {\left( {\frac{{{{\left| {\rho {v_{n - 1}}} \right|}_n} + {{\left. {\rho {v_{n - 1}}} \right|}_n}}}{2}} \right){u_P} - \left( {\frac{{{{\left| {\rho {v_{n - 1}}} \right|}_n} - {{\left. {\rho {v_{n - 1}}} \right|}_n}}}{2}} \right){u_P} - \frac{{{u_{N - }}{u_P}}}{{\Delta y}}} \right)\Delta x
+$$
+
+$$
+\int {{{\left. {\rho vu} \right|}_s}dy}  - \int {{{\left. {\mu \frac{{\partial u}}{{\partial y}}} \right|}_s}dx}  = \left( {\left( {\frac{{{{\left| {\rho {v_{n - 1}}} \right|}_s} + {{\left. {\rho {v_{n - 1}}} \right|}_s}}}{2}} \right){u_S} - \left( {\frac{{{{\left| {\rho {v_{n - 1}}} \right|}_s} - {{\left. {\rho {v_{n - 1}}} \right|}_s}}}{2}} \right){u_P} - \frac{{{u_{P - }}{u_S}}}{{\Delta y}}} \right)\Delta x
+$$
+ 这里，涉及到<span class="math inline">\(\rho
+v_{n-1}\)</span>，需要找到对应的v-cell网格进行插值得到，如下图所示：</p>
+<figure>
+<img src="https://bihengnew-1259679794.cos.ap-nanjing.myqcloud.com/image-20240501001329715.png" srcset="/img/loading.gif" lazyload alt="image-20240501001329715">
+<figcaption aria-hidden="true">image-20240501001329715</figcaption>
+</figure>
+<p>蓝色为v-cell，红色为u-cell，u-cell的上下界面的质量通量，，假定<span class="math inline">\(u_P\)</span>的网格索引号为i,j，则对应到v-cell网格中的索引如下，<span class="math inline">\(\rho
+v_{n-1}\)</span>通过相邻v-cell的体心值插值获得: <span class="math display">\[
+\rho v_{n-1}|_{s}=\rho\frac{v_P+v_W}{2}=\rho\frac{v_{i,j}+v_{i,j-1}}{2}
+\]</span></p>
+<p><span class="math display">\[
+\rho
+v_{n-1}|_{n}=\rho\frac{v_N+v}{2}=\rho\frac{v_{i+1,j}+v_{i+1,j-1}}{2}
+\]</span></p>
+<p>最后是压力梯度项的离散，这里需要说明，虽然此处是对压力梯度进行离散，但是求解的变量为u，以u-cell的位置为基准进行离散，这里体现出一个交错网格的优势，它十分巧妙的让几套网格的中心落在边界上。u-cell的中心，其实是压力网格的左边界。因此以u-cell为中心的压力梯度离散，可以直接采用p-cell的体心值前向差分得到，不需要像上述过程在边界处再插值：
+<span class="math display">\[
+\int \frac{\partial p}{\partial x}dxdy= (P_P-P_W)\Delta y
+\]</span>
+同理对y方向上的动量方程也进行上述离散过程，不再赘述。对上述格式进行整理可以获得:</p>
+
+$$
+a_{{i,\tilde{f}}}u_{{i,\tilde{f}}}=\sum a_{nb}u_{nb}-({p_{I,\tilde{f}}-p_{I-1,\tilde{f}}})\Delta y
+$$
+
+<p><span class="math display">\[
+a_{I,j}v_{I,j}=\sum a_{nb}v_{nb}+(p_{I,j-1}-p_{I,j})\Delta x
+\]</span></p>
+<h2 id="simple算法速度和压力修正">SIMPLE算法速度和压力修正</h2>
+<p>接下来是SIMPLE算法的核心步骤：</p>
+<p>假定<span class="math inline">\(u^*\)</span>和<span class="math inline">\(v^*\)</span>为某一迭代步计算后得到的解，则有(<span class="math inline">\(A_{ij}\)</span>即<span class="math inline">\(\Delta x\)</span>、<span class="math inline">\(\Delta y\)</span>)： <span class="math display">\[
+a_{i,f}u_{i,f}^*=\sum
+a_{nb}u_{nb}^*+(p_{I-1,f}^*-p_{I,f}^*)A_{i,f}+b_{i,f}
+\]</span></p>
+<p><span class="math display">\[
+a_{I,j}v_{I,j}^*=\sum
+a_{nb}v_{nb}^*+(p_{I,j-1}^*-p_{I,j}^*)A_{I,j}+b_{I,j}
+\]</span></p>
+<p>将上式与假定的收敛解做差，可得: 
+$$
+a_{{i,j}}(u_{{i,j}}-u_{{i,j}}^{*})=\sum a_{nb}(u_{nb}-u_{nb}^{*})+[(p_{{I-1,j}}-p_{{I-1,j}}^{*})-(p_{{I,j}}-p_{{I,j}}^{*})]A_{{i,j}}
+$$
+</p>
+<p><span class="math display">\[
+a_{I,j}(v_{I,j}-v_{I,j}^{*})=\sum
+a_{nb}(v_{nb}-v_{nb}^{*})+[(p_{I,j-1}-p_{I,j-1}^{*})-(p_{I,j}-p_{I,j}^{*})]A_{I,j}
+\]</span></p>
+<p>进一步简写可以得到: <span class="math display">\[
+a_{i,j}u_{i,j}^{\prime}=\sum
+a_{nb}u_{nb}^{\prime}+(p_{I-1,j}^{\prime}-p_{I,j}^{\prime})A_{i,j}\\a_{I,j}v_{I,j}^{\prime}=\sum
+a_{nb}v_{nb}^{\prime}+(p_{I,j-1}^{\prime}-p_{I,j}^{\prime})A_{I,j}
+\]</span> 上式中，<span class="math inline">\(u_{i,j}^{\prime}\)</span>和<span class="math inline">\(v_{I,j}^{\prime}\)</span>则分别是u-cell和v-cell速度修正值，因此速度的更新，则由迭代值<span class="math inline">\(u^*\)</span>和<span class="math inline">\(u^{\prime}\)</span>决定：</p>
+<p><span class="math display">\[
+u=u^*+u^{\prime}
+\]</span></p>
+<p><span class="math display">\[
+v=v^{*}+v^{\prime}
+\]</span></p>
+<p>上式中，<span class="math inline">\(\sum
+a_{nb}(u_{nb}-u_{nb}^{*})\)</span>为相邻网格节点对速度修正值的影响。SIMPLE算法在迭代过程中，将这一值忽略，即速度修正仅与压力修正值有关。这样做，近邻点无法显性表达，直接迭代处理较为麻烦，二是，随着速度逐渐收敛，近邻点的影响逐渐减弱，直到“忽略不计”，并不会影响最终的结果：
+<span class="math display">\[
+u_{i,j}^{\prime}=d_{i,j}(p_{I-1,j}^{\prime}-p_{I,j}^{\prime})\\v_{I,j}^{\prime}=d_{I,j}(p_{I,j-1}^{\prime}-p_{I,j}^{\prime})
+\]</span></p>
+<p><span class="math display">\[
+u_{i,j}=u_{i,j}^*+d_{i,j}(p_{i-1,j}^\prime-p_{i,j}^\prime)
+\]</span></p>
+<p><span class="math display">\[
+v_{I,j}=v_{I,j}^*+d_{I,j}(p_{I,j-1}^{\prime}-p_{I,j}^{\prime})
+\]</span></p>
+<p>到这一步，我们终于把压力修正值与速度修正值联系起来了。可是仅靠动量方程，我们还是无法得到将两者求解出来。这时，还剩下连续性方程，连续性方程没有压力表达式的参与，仅由速度和密度决定。更像是一个准确性判据，即速度必须需要满足连续性方程，才是符合物理解的方程。
+<span class="math display">\[
+[(\rho uA)_{i+1,j}-(\rho uA)_{i,j}]+[(\rho vA)_{I,j+1}-(\rho
+vA)_{I,j}]=0
+\]</span> 将u和v的迭代表达式代入上述方程，可以得到压力泊松方程： <span class="math display">\[
+\begin{aligned}&amp;[\rho_{i+1,j}A_{i+1,j}(u_{i+1,j}^{*}+d_{i+1,j}(p_{I,j}^{\prime}-p_{I+1,j}^{\prime}))-\rho_{i,j}A_{i,j}(u_{i,j}^{*}\\&amp;+d_{i,j}(p_{I-1,j}^{\prime}-p_{I,j}^{\prime}))]+[\rho_{I,j+1}A_{I,j+1}(v_{I,j+1}^{*}+d_{I,j+1}(p_{I,j}^{\prime}-p_{I,j+1}^{\prime}))\\&amp;-\rho_{I,j}A_{I,j}(v_{I,j}^{*}+d_{I,j}(p_{I,j-1}^{\prime}-p_{I,j}^{\prime}))]=0\end{aligned}
+\]</span> 进一步化简得到： <span class="math display">\[
+a_{I,j}p_{I,j}^{\prime}=a_{I+1,j}p_{I+1,j}^{\prime}+a_{I-1,j}p_{I-1,j}^{\prime}+a_{I,j+1}p_{I,j+1}^{\prime}+a_{I,j-1}p_{I,j-1}^{\prime}+b_{I,j}^{\prime}
+\]</span> <img src="https://bihengnew-1259679794.cos.ap-nanjing.myqcloud.com/image-20240502103211242.png" srcset="/img/loading.gif" lazyload alt="image-20240502103211242"></p>
+<p>压力泊松方程，求解的是各个节点上的压力修正值。仍然是需要迭代求解，并非显性可以直接递推获得全域的压力修正值。</p>
+<h2 id="边界条件">边界条件</h2>
+<p>边界条件应该是交错网格中，最容易让人误判的地方，参考书目中对边界条件讲的并不太多。首先，这是与交错网格划分方式相关。一般而言，对于真实流体域划分网格，以标量网格为核心，速度网格再错开。如下图所示：</p>
+<figure>
+<img src="https://bihengnew-1259679794.cos.ap-nanjing.myqcloud.com/image-20240502104639564.png" srcset="/img/loading.gif" lazyload alt="image-20240502104639564">
+<figcaption aria-hidden="true">image-20240502104639564</figcaption>
+</figure>
+<p>以压力网格为核心，速度网格u和v相对于p网格中心进行偏移。对于无滑移边界条件而言，边界上的速度值已经给定，而u和v的边界网格中心，刚好落在物理边界上。所以直接对速度网格赋予边界值，在求解压力泊松方程。</p>
+<p>而对于p网格，其边界条件的确定，则对应到压力泊松方程，具体参考汪洋博士的开源文档（B站名：大官人学CFD）。</p>
+<p>本文所使用的网格划分方式，与上述方式略有不用，更"类似"于有限差分法的网格划分方式，即p-cell的中心在物理边界上，导致边界上的速度网格向外延伸，超出边界成为虚拟网格。</p>
+<figure>
+<img src="https://bihengnew-1259679794.cos.ap-nanjing.myqcloud.com/image-20240502183914471.png" srcset="/img/loading.gif" lazyload alt="image-20240502183914471">
+<figcaption aria-hidden="true">image-20240502183914471</figcaption>
+</figure>
+<p>对于u网格（上图中红色网格）：</p>
+<p>u网格在左右边界向外延伸出一个虚拟网格节点，而在上下边界中，则u-cell中心落在边界上，因此对于无滑移边界或者速度给定的边界条件，则，上下边界的u-cell网格可以直接给定速度值。而对于左右边界，超出实际物理边界的虚拟边界网格的赋值，则认为与内层节点互为相反数（对于无滑移边界）。因为物理边界实际处于虚拟节点与内层节点的中心位置，u=0，所以根据插值关系得到虚拟节点的赋值与内层节点的计算值互为相反数。</p>
+<p>对于v网格（上图中蓝色网格）：</p>
+<p>与u网格处理方式极为相似，不同的是，计算域左右物理边界，刚好处于v网格的中心位置，所以可以直接赋值。而上下边界处，v网格向外延伸出一层虚拟节点，和u网格处理方法一致，在无滑移边界条件下，边界虚拟网格节点的值与内层网格节点值互为相反数。</p>
+<p>对于p网格（上图中黑色网格）：</p>
+<p>对于p网格，要分情况讨论，还是要落到原本的压力修正方程中。四个角点的p网格，首先考虑到，压力是一个相对意义大于绝对意义的物理量，CFD计算中关注压差，而非绝对压力，压差是驱动流体运动的关键。计算压力需要设置一个压力参考点，由于上边界设定为速度边界，所以习惯性设定左下角角点处的压力为0，作为一个计算参考值。</p>
+<p>紧接着对于其余3个角点，将网格边界上的通量代入到原本压力修正方程中，可以得到，对于右下角角点，AE=0，AS=0。左上角角点，AW=0，AN=0。右上角角点，AN=0，AE=0。</p>
+<p>然后是除角点外的边界网格，对于左边界，AW=0；右边界，AE=0；上边界，AN=0；下边界,
+AS = 0。</p>
+<p>最后是SIMPLE算法的流程：</p>
+<figure>
+<img src="https://bihengnew-1259679794.cos.ap-nanjing.myqcloud.com/image-20240502190203547.png" srcset="/img/loading.gif" lazyload alt="image-20240502190203547">
+<figcaption aria-hidden="true">image-20240502190203547</figcaption>
+</figure>
+<h2 id="计算程序">计算程序</h2>
+<p>以二维驱动方腔流动为例，编写程序，实现使用有限体积法和交错网格计算方腔内的速度和压力分布（个人觉得最难的部分，其实还是在于边界条件的理解上）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br></pre></td><td class="code"><pre><code class="hljs pytho">#!/usr/bin/env python3<br># -*- coding: utf-8 -*-<br>&quot;&quot;&quot;<br>Created on Sun Apr 28 09:46:16 2024<br><br>@author: mestro<br>&quot;&quot;&quot;<br>from math import *<br>import numpy as np<br>import matplotlib.pyplot as plt<br><br><br>L = 1.0<br>N = 51<br>dx = L/(N-1)<br>dy = L/(N-1)<br>velocity = 2.0<br>rho = 1<br>miu = 0.01<br><br>P = np.zeros([N,N])<br>U = np.zeros([N,N+1])<br>V = np.zeros([N+1,N])<br>U[N-1,:] = velocity<br>dU = np.zeros([N,N+1])<br>dV = np.zeros([N+1,N])<br><br><br>P_iter = P.copy()<br>U_iter = U.copy()<br>V_iter = V.copy()<br><br>NN = N*N<br>iter = 0<br>err = 1.0<br><br>while (iter &lt; 1000) and (err &gt; 1e-5):<br>    for i in range(1,N-1):<br>        for j in range(1,N):<br>            rho_u_e = 0.5*(U[i,j] + U[i,j+1])*rho;<br>            rho_u_w = 0.5*(U[i,j] + U[i,j-1])*rho;<br>            rho_v_s = 0.5*(V[i,j] + V[i,j-1])*rho;<br>            rho_v_n = 0.5*(V[i+1,j] + V[i+1,j-1])*rho;<br>            <br>            AE = 0.5*(abs(rho_u_e) + rho_u_e)*dy + miu*dy/dx;<br>            AW = 0.5*(abs(rho_u_w) - rho_u_w)*dy + miu*dy/dx;<br>            AN = 0.5*(abs(rho_v_n) + rho_v_n)*dx + miu*dx/dy;<br>            AS = 0.5*(abs(rho_v_s) - rho_v_s)*dx + miu*dx/dy;<br>            <br>            AEE = 0.5*(abs(rho_u_e) - rho_u_e)*dy + miu*dy/dx;<br>            AWW = 0.5*(abs(rho_u_w) + rho_u_w)*dy + miu*dy/dx;<br>            ANN = 0.5*(abs(rho_v_n) - rho_v_n)*dx + miu*dx/dy;<br>            ASS = 0.5*(abs(rho_v_s) + rho_v_s)*dx + miu*dx/dy;<br>            <br>            Ap = (AE+AW+AN+AS);<br>            U_iter[i,j] = 1/Ap*(AEE*U[i,j+1] + AWW*U[i,j-1] + ANN*U[i+1,j] + ASS*(U[i-1,j]) - (P[i,j] - P[i,j-1])*dy);<br>            dU[i,j] = dy/Ap;<br>    #bottom mesh<br>    i = 0;<br>    for j in range(1,N):<br>        rho_u_e = 0.5*(U[i,j] + U[i,j+1])*rho;<br>        rho_u_w = 0.5*(U[i,j] + U[i,j-1])*rho;<br>        #rho_v_s = 0.5*(V[i,j] + V[i,j-1])*rho;<br>        rho_v_n = 0.5*(V[i+1,j] + V[i+1,j-1])*rho;<br>        <br>        AE = 0.5*(abs(rho_u_e) + rho_u_e)*dy + miu*dy/dx;<br>        AW = 0.5*(abs(rho_u_w) - rho_u_w)*dy + miu*dy/dx;<br>        AN = 0.5*(abs(rho_v_n) + rho_v_n)*dx + miu*dx/dy;<br>        #AS = 0.5*(abs(rho_v_s) - rho_v_s)*dx + miu*dx/dy;<br>        As = 0;<br>        Ap = (AE+AW+AN+AS);<br>        dU[i,j] = dy/Ap;<br>    #top mesh<br>    i = N-1<br>    for j in range(1,N):<br>        rho_u_e = 0.5*(U[i,j] + U[i,j+1])*rho;<br>        rho_u_w = 0.5*(U[i,j] + U[i,j-1])*rho;<br>        rho_v_s = 0.5*(V[i,j] + V[i,j-1])*rho;<br>        #rho_v_n = 0.5*(V[i+1,j] + V[i+1,j-1])*rho;<br>        <br>        AE = 0.5*(abs(rho_u_e) + rho_u_e)*dy + miu*dy/dx;<br>        AW = 0.5*(abs(rho_u_w) - rho_u_w)*dy + miu*dy/dx;<br>        #AN = 0.5*(abs(rho_v_n) + rho_v_n)*dx + miu*dx/dy;<br>        AN = 0.0;<br>        AS = 0.5*(abs(rho_v_s) - rho_v_s)*dx + miu*dx/dy;<br>        Ap = (AE+AW+AN+AS);<br>        dU[i,j] = dy/Ap;<br>    #Apple BCs<br>    U_iter[:,0] = -U_iter[:,1]; #left<br>    U_iter[1:N-1,N] = -U_iter[1:N-1,N-1]; #right<br>    U_iter[0,:] = 0.0 #bottom<br>    U_iter[N-1,:] = velocity #top<br>    <br>    <br>    # V equation<br>    for i in range(1,N):<br>        for j in range(1,N-1):<br>            rho_u_e = 0.5*(U[i,j] + U[i-1,j])*rho;<br>            rho_u_w = 0.5*(U[i,j+1] + U[i-1,j+1])*rho;<br>            rho_v_n = 0.5*(V[i,j] + V[i+1,j])*rho;<br>            rho_v_s = 0.5*(V[i,j] + V[i-1,j])*rho;<br>            <br>            AE = 0.5*(abs(rho_u_e) + rho_u_e)*dy + miu*dy/dx;<br>            AW = 0.5*(abs(rho_u_w) - rho_u_w)*dy + miu*dy/dx;<br>            AN = 0.5*(abs(rho_v_n) + rho_v_n)*dx + miu*dx/dy;<br>            AS = 0.5*(abs(rho_v_s) - rho_v_s)*dx + miu*dx/dy;<br>            <br>            AEE = 0.5*(abs(rho_u_e) - rho_u_e)*dy + miu*dy/dx;<br>            AWW = 0.5*(abs(rho_u_w) + rho_u_w)*dy + miu*dy/dx;<br>            ANN = 0.5*(abs(rho_v_n) - rho_v_n)*dx + miu*dx/dy;<br>            ASS = 0.5*(abs(rho_v_s) + rho_v_s)*dx + miu*dx/dy;<br>            <br>            Ap = (AE+AW+AN+AS);<br>            V_iter[i,j] = 1.0/Ap*(AEE*V[i,j+1] + AWW*V[i,j-1] + ANN*V[i+1,j] + ASS*V[i-1,j] - (P[i,j] - P[i-1,j])*dx);<br>            dV[i,j] = dx/Ap;<br>    #left<br>    j = 0<br>    for i in range(1,N):<br>        rho_u_e = 0.5*(U[i,j] + U[i-1,j])*rho;<br>        #rho_u_w = 0.5*(U[i,j+1] + U[i-1,j+1])*rho;<br>        rho_v_n = 0.5*(V[i,j] + V[i+1,j])*rho;<br>        rho_v_s = 0.5*(V[i,j] + V[i-1,j])*rho;<br>        <br>        AE = 0.5*(abs(rho_u_e) + rho_u_e)*dy + miu*dy/dx;<br>        #AW = 0.5*(abs(rho_u_w) - rho_u_w)*dy + miu*dy/dx;<br>        AW = 0.0<br>        AN = 0.5*(abs(rho_v_n) + rho_v_n)*dx + miu*dx/dy;<br>        AS = 0.5*(abs(rho_v_s) - rho_v_s)*dx + miu*dx/dy;<br>        Ap = (AE+AW+AN+AS);<br>        dV[i,j] = dx/Ap;<br>    <br>    #right0, L, N<br>    j = N-1<br>    for i in range(1,N):<br>        #rho_u_e = 0.5*(U[i,j] + U[i-1,j])*rho;<br>        rho_u_w = 0.5*(U[i,j+1] + U[i-1,j+1])*rho;<br>        rho_v_n = 0.5*(V[i,j] + V[i+1,j])*rho;<br>        rho_v_s = 0.5*(V[i,j] + V[i-1,j])*rho;<br>        <br>        #AE = 0.5*(abs(rho_u_e) + rho_u_e)*dy + miu*dy/dx;<br>        AE = 0.0;<br>        AW = 0.5*(abs(rho_u_w) - rho_u_w)*dy + miu*dy/dx;<br>        AN = 0.5*(abs(rho_v_n) + rho_v_n)*dx + miu*dx/dy;<br>        AS = 0.5*(abs(rho_v_s) - rho_v_s)*dx + miu*dx/dy;<br>        Ap = (AE+AW+AN+AS);<br>        dV[i,j] = dx/Ap;<br>    #Apply BCs<br><br>    V_iter[:,0] = 0.0;<br>    V_iter[:,N-1] = 0.0;<br>    V_iter[0,1:N-1] = -V_iter[1,1:N-1];<br>    V_iter[N,1:N-1] = -V_iter[N-1,1:N-1];<br>    <br>    U_old = U.copy();<br>    V_old = V.copy();<br>    bp = np.zeros([NN,1]);<br>    #pressure fix<br>    for i in range(N):<br>        for j in range(N):<br>            index = i*N+j;<br>            bp[index] = (rho*U_iter[i,j]*dy - rho*U_iter[i,j+1]*dy + rho*V_iter[i,j]*dx - rho*V_iter[i+1,j]*dx);<br>    bp[0] = 0.0;<br>    <br>    APP = np.zeros([NN,NN]);<br>    #left bottom<br>    i = 0<br>    j = 0<br>    index = i*N + j<br>    # Ae = -rho*dU[i,j+1]*dy;<br>    # An = -rho*dV[i+1,j]*dx;<br>    # Ap = -(Ae + An);<br>    # APP[index,index+1] = Ae;<br>    # APP[index,index+N] = An;<br>    # APP[index,index] = Ap;<br>    APP[index,index] = 1;<br>    <br>    #right bottom<br>    i = 0;<br>    j = N-1;<br>    index = i*N + j<br>    Aw = -rho*dU[i,j]*dy;<br>    An = -rho*dV[i+1,j]*dx;<br>    Ap = -(Aw + An);<br>    APP[index,index - 1] = Aw;<br>    APP[index,index + N] = An;<br>    APP[index,index] = Ap;<br>    <br>    #left top<br>    i = N-1<br>    j = 0;<br>    index = i*N + j<br>    As = -rho*dV[i,j]*dx;<br>    Ae = -rho*dU[i,j+1]*dy;<br>    Ap = -(As + Ae);<br>    APP[index,index+1] = Ae;<br>    APP[index,index-N] = As;<br>    APP[index,index] = Ap;<br>    <br>    #right top<br>    i = N-1<br>    j = N-1<br>    index = i*N+j<br>    Aw = -rho*dU[i,j]*dy;<br>    As = -rho*dV[i,j]*dx;<br>    Ap = -(Aw + As);<br>    APP[index,index] = Ap<br>    APP[index,index-1] = Aw<br>    APP[index,index-N] = As <br><br>    i = 0;<br>    for j in range(1,N-1):<br>        index = i*N+j;<br>        Aw = -rho*dU[i,j]*dy;<br>        An = -rho*dV[i+1,j]*dx;<br>        Ae = -rho*dU[i,j+1]*dy;<br>        Ap = -(Aw + An + Ae);<br>        APP[index,index] = Ap;<br>        APP[index,index-1] = Aw;<br>        APP[index,index+N] = An;<br>        APP[index,index+1] = Ae;<br>        <br>        <br>        <br>    i = N-1;<br>    for j in range(1,N-1):<br>        index = i*N+j<br>        Aw = -rho*dU[i,j]*dy;<br>        As = -rho*dV[i,j]*dx;<br>        Ae = -rho*dU[i,j+1]*dy;<br>        Ap = -(Aw + As + Ae);<br>        APP[index,index] = Ap;<br>        APP[index,index - 1] = Aw;<br>        APP[index,index - N] = As;<br>        APP[index,index + 1] = Ae;<br>    <br>    j = 0;<br>    for i in range(1,N-1):<br>        index = i*N+j;<br>        Ae = -rho*dU[i,j+1]*dy;<br>        An = -rho*dV[i+1,j]*dx;<br>        As = -rho*dV[i,j]*dx;<br>        Ap = -(Ae + An + As);<br>        APP[index,index] = Ap;<br>        APP[index,index + 1] = Ae;<br>        APP[index,index + N] = An;<br>        APP[index,index - N] = As;<br>    <br>    j = N-1;<br>    for i in range(1,N-1):<br>        index = i*N + j;<br>        Aw = -rho*dU[i,j]*dy;<br>        An = -rho*dV[i+1,j]*dx;<br>        As = -rho*dV[i,j]*dx;<br>        Ap = -(Aw + An + As);<br>        APP[index,index] = Ap;<br>        APP[index,index - 1] = Aw;<br>        APP[index,index + N] = An;<br>        APP[index,index - N] = As;<br>    <br>    for i in range(1,N-1):<br>        for j in range(1,N-1):<br>            index = i*N + j<br>            Aw = -rho*dU[i,j]*dy;<br>            An = -rho*dV[i+1,j]*dx;<br>            As = -rho*dV[i,j]*dx;<br>            Ae = -rho*dU[i,j+1]*dy;<br>            Ap = -(Aw + An + As + Ae);<br>            APP[index,index] = Ap;<br>            APP[index,index - 1] = Aw;<br>            APP[index,index + N] = An;<br>            APP[index,index - N] = As;<br>            APP[index,index + 1] = Ae;<br>            <br>            <br>    # pressure correction<br>    p_fix = np.linalg.solve(APP, bp)<br>    P_fix_matrix = np.zeros([N,N]);<br>    for i in range(N):<br>        for j in range(N):<br>            index = i*N+j<br>            P[i,j] = 0.3*p_fix[index] + P[i,j];<br>            P_fix_matrix[i,j] = p_fix[index];<br>    P[0,0] = 0.0;<br>    #velocity update<br>    for i in range(1,N-1):<br>        for j in range(1,N):<br>            U[i,j] = U_iter[i,j] + dU[i,j]*(P_fix_matrix[i,j-1] - P_fix_matrix[i,j]);<br>    for i in range(1,N):<br>        for j in range(1,N-1):<br>            V[i,j] = V_iter[i,j] + dV[i,j]*(P_fix_matrix[i-1,j] - P_fix_matrix[i,j]);<br>    <br>    <br>    #Apple BCs<br>    U[1:N-1,0] = -U[1:N-1,1]; #left<br>    U[1:N-1,N] = -U[1:N-1,N-1]; #right<br>    U[0,:] = 0.0 #bottom<br>    U[N-1,:] = velocity #top<br>    <br>    V[0,1:N-1] = -V[1,1:N-1];<br>    V[N,1:N-1] = -V[N-1,1:N-1];<br>    V[:,0] = 0.0;<br>    V[:,N-1] = 0.0;<br>    <br>    err1 = np.max(np.abs(U-U_old))<br>    err2 = np.max(np.abs(V-V_old))<br>    err = max(err1,err2)<br>    <br>    iter = iter + 1<br>    print(&quot;the iter num is &quot; + str(iter) + &quot; and max err is &quot; + str(err) + &quot;\n&quot;)<br>    <br><br><br>#plot<br>x = np.linspace(dx/2, 1 - dx/2,N-1);<br>y = np.linspace(0, 1, N)<br>X, Y = np.meshgrid(x, y)  # Generate 2D grid coordinates<br>plt.figure()<br>plt.contourf(X,Y, U[:,1:N], levels=20, cmap=&#x27;jet&#x27;)  # Adjust levels and cmap as needed<br>plt.colorbar(label=&#x27;Velocity UX&#x27;)<br>plt.xlabel(&#x27;X&#x27;)<br>plt.ylabel(&#x27;Y&#x27;)<br>plt.title(&#x27;Velocity Contour Plot&#x27;)<br>plt.show()<br><br><br>x = np.linspace(0,1,N);<br>y = np.linspace(0, 1, N)<br>X, Y = np.meshgrid(x, y)  # Generate 2D grid coordinates<br>plt.figure()<br>plt.contourf(X,Y,P, levels=20, cmap=&#x27;jet&#x27;)  # Adjust levels and cmap as needed<br>plt.colorbar(label=&#x27;pressure P&#x27;)<br>plt.xlabel(&#x27;X&#x27;)<br>plt.ylabel(&#x27;Y&#x27;)<br>plt.title(&#x27;Pressure&#x27;)<br>plt.show()<br></code></pre></td></tr></table></figure>
+<figure>
+<img src="https://bihengnew-1259679794.cos.ap-nanjing.myqcloud.com/image-20240502190416634.png" srcset="/img/loading.gif" lazyload alt="image-20240502190416634">
+<figcaption aria-hidden="true">image-20240502190416634</figcaption>
+</figure>
+<figure>
+<img src="https://bihengnew-1259679794.cos.ap-nanjing.myqcloud.com/image-20240502190443074.png" srcset="/img/loading.gif" lazyload alt="image-20240502190443074">
+<figcaption aria-hidden="true">image-20240502190443074</figcaption>
+</figure>
+<h2 id="小结">小结</h2>
+<p>本文主要是使用Python实现了基于有限体积法和交错网格的SIMPLE算法，对流项采用一阶迎风格式，扩散项采用前向差分，其实离散过程并不复杂，最复杂和最难分清楚的还是在于边界条件，个人觉得这也是书中讲述比较少的地方。文中有错误非常欢迎指出，尤其是理解上和原则性错误。</p>
+<p>参考资料：</p>
+<ol type="1">
+<li>B站 曾导SJTU的CFD从0到1的课程</li>
+<li>B站 大官人学CFD，汪洋博士的开源OpenFOAM基础课程讲义</li>
+<li>参考书：An Introduction to Computational Fluid Dynamics The Finite
+Volume Method 2nd Edition.</li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Openfoam%E5%AD%A6%E4%B9%A0/">#Openfoam学习</a>
+      
+        <a href="/tags/C/">#C++</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>基于有限体积法和交错网格的SIMPLE算法推导及实现</div>
+      <div>http://example.com/2024/05/02/post05/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Biheng Xie</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年5月2日</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>许可协议</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/11/01/post04/" title="OpenFOAM基础 - c++ note1">
+                        <span class="hidden-mobile">OpenFOAM基础 - c++ note1</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  
+      <script>
+        if (!window.MathJax) {
+          window.MathJax = {
+            tex    : {
+              inlineMath: { '[+]': [['$', '$']] }
+            },
+            loader : {
+              load: ['ui/lazy']
+            },
+            options: {
+              renderActions: {
+                insertedScript: [200, () => {
+                  document.querySelectorAll('mjx-container').forEach(node => {
+                    let target = node.parentNode;
+                    if (target.nodeName.toLowerCase() === 'li') {
+                      target.parentNode.classList.add('has-jax');
+                    }
+                  });
+                }, '', false]
+              }
+            }
+          };
+        } else {
+          MathJax.startup.document.state(0);
+          MathJax.texReset();
+          MathJax.typeset();
+          MathJax.typesetPromise();
+        }
+      </script>
+    
+
+  <script  src="https://lib.baomitu.com/mathjax/3.2.1/es5/tex-mml-chtml.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
